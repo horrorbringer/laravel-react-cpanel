@@ -69,6 +69,11 @@ export default function Register({ passwordRules }: Props) {
                                     placeholder="Password"
                                     passwordrules={passwordRules}
                                 />
+                                <p className="text-muted-foreground text-sm">
+                                    Must be at least 12 characters and include
+                                    uppercase, lowercase, a number, and a
+                                    symbol.
+                                </p>
                                 <InputError message={errors.password} />
                             </div>
 
