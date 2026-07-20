@@ -55,17 +55,14 @@ jobs:
             local key="$1"
             local value="$2"
             [ -z "$value" ] && return 0
-            # Quote the value so special chars (#, @, (), ,) are preserved
-            # literally and not parsed as comments or shell metacharacters.
-            local quoted="\"${value}\""
             # Handle an already-active key.
             if grep -q "^${key}=" .env; then
-              sed -i "s|^${key}=.*|${key}=${quoted}|" .env
+              sed -i "s|^${key}=.*|${key}=${value}|" .env
             # Handle a commented-out key (e.g. "# DB_HOST=127.0.0.1").
             elif grep -q "^#[[:space:]]*${key}=" .env; then
-              sed -i "s|^#[[:space:]]*${key}=.*|${key}=${quoted}|" .env
+              sed -i "s|^#[[:space:]]*${key}=.*|${key}=${value}|" .env
             else
-              echo "${key}=${quoted}" >> .env
+              echo "${key}=${value}" >> .env
             fi
           }
 
