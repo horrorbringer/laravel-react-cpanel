@@ -30,6 +30,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Deploy Token
+    |--------------------------------------------------------------------------
+    |
+    | A shared secret used to authorize the post-deploy web hook
+    | (DeployController). Since cPanel shared hosting has no SSH access,
+    | this lets you trigger Artisan commands (migrations, cache clears)
+    | from a single authenticated browser request after an FTP deploy.
+    | Leave empty to disable the hook.
+    */
+
+    'deploy_token' => env('DEPLOY_TOKEN', ''),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Debug Mode
     |--------------------------------------------------------------------------
     |

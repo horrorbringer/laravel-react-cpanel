@@ -75,6 +75,7 @@ jobs:
           set_key DB_DATABASE "${{ secrets.DB_DATABASE }}"
           set_key DB_USERNAME "${{ secrets.DB_USERNAME }}"
           set_key DB_PASSWORD "${{ secrets.DB_PASSWORD }}"
+          set_key DEPLOY_TOKEN "${{ secrets.DEPLOY_TOKEN }}"
 
           php artisan key:generate
 
@@ -124,6 +125,13 @@ jobs:
             # .env is generated in CI from GitHub secrets and IS deployed on purpose.
             # Only the example/template files are excluded above.
 
+      - name: Trigger post-deploy Artisan hook
+        if: ${{ secrets.DEPLOY_TOKEN != '' && secrets.APP_URL != '' }}
+        run: |
+          URL="${{ secrets.APP_URL }}/deploy?token=${{ secrets.DEPLOY_TOKEN }}"
+          echo "Calling post-deploy hook: ${URL}"
+          curl -fsSL "$URL" || echo "Hook call failed (check APP_URL/DEPLOY_TOKEN secrets)."
+
       - name: Post-deploy server checklist
         run: |
           echo "After this deploy finishes:"
@@ -131,4 +139,4 @@ jobs:
           echo "   (clears any stale /home/runner/... paths from a previous cached build)."
           echo "2. Set permissions to 755 on: storage/, storage/framework/{cache,sessions,views,logs}, bootstrap/cache/"
           echo "3. Ensure storage/logs/ exists (create it if missing)."
-          echo "4. Create the MySQL database in cPanel and run migrations once (no SSH available)."
+          echo "4. The post-deploy hook above runs migrate + cache clears automatically if DEPLOY_TOKEN is set."
