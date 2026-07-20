@@ -113,8 +113,6 @@ jobs:
             **/.env.local
             **/.env.*.local
             **/tests/**
-            **/database/seeders/**
-            **/database/factories/
             **/bootstrap/cache/*.php
             **/storage/*.key
             **/storage/pail/**
