@@ -47,21 +47,35 @@ jobs:
       - name: Generate production environment file
         run: |
           cp .env.example .env
+
+          # Override every key with server-specific values so the deployed
+          # .env is correct regardless of your local (e.g. sqlite) setup.
+          # If a secret is empty, the .env.example default is kept.
+          set_key() {
+            local key="$1"
+            local value="$2"
+            [ -z "$value" ] && return 0
+            if grep -q "^${key}=" .env; then
+              sed -i "s|^${key}=.*|${key}=${value}|" .env
+            else
+              echo "${key}=${value}" >> .env
+            fi
+          }
+
+          set_key APP_ENV "production"
+          set_key APP_DEBUG "false"
+          set_key APP_URL "${{ secrets.APP_URL || 'https://spa.kimmex.com.kh' }}"
+          set_key DB_CONNECTION "${{ secrets.DB_CONNECTION }}"
+          set_key DB_HOST "${{ secrets.DB_HOST }}"
+          set_key DB_PORT "${{ secrets.DB_PORT }}"
+          set_key DB_DATABASE "${{ secrets.DB_DATABASE }}"
+          set_key DB_USERNAME "${{ secrets.DB_USERNAME }}"
+          set_key DB_PASSWORD "${{ secrets.DB_PASSWORD }}"
+
           php artisan key:generate
           php artisan config:cache
           php artisan route:cache
           php artisan view:cache
-        env:
-          APP_ENV: production
-          APP_DEBUG: false
-          APP_URL: ${{ secrets.APP_URL || 'https://spa.kimmex.com.kh' }}
-          # Database / mail / cache credentials are injected from GitHub secrets.
-          DB_CONNECTION: ${{ secrets.DB_CONNECTION }}
-          DB_HOST: ${{ secrets.DB_HOST }}
-          DB_PORT: ${{ secrets.DB_PORT }}
-          DB_DATABASE: ${{ secrets.DB_DATABASE }}
-          DB_USERNAME: ${{ secrets.DB_USERNAME }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
 
       - name: Deploy to cPanel via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.1
@@ -79,9 +93,10 @@ jobs:
             **/node_modules/**
             **/.env.example
             **/.env.backup
+            **/.env.local
+            **/.env.*.local
             **/tests/**
             **/database/**
-            **/bootstrap/cache/*.php
             **/storage/*.key
             **/storage/pail/**
             **/storage/logs/**
@@ -99,4 +114,7 @@ jobs:
             **/pint.json
             **/tsconfig.json
             **/.github/**
+
+            # .env is generated in CI from GitHub secrets and IS deployed on purpose.
+            # Only the example/template files are excluded above.
 
