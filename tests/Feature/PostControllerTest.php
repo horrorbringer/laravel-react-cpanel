@@ -37,6 +37,20 @@ test('authenticated users can create a post', function () {
     ]);
 });
 
+test('post content stores editor HTML unmodified', function () {
+    $html = '<h2>Heading</h2><p>Some <strong>bold</strong> text</p>';
+
+    $this->actingAs($this->user)
+        ->post(route('posts.store'), [
+            'title' => 'Rich content post',
+            'content' => $html,
+            'published' => false,
+        ]);
+
+    expect(Post::where('title', 'Rich content post')->first()->content)
+        ->toBe($html);
+});
+
 test('post validation requires a title and content', function () {
     $this->actingAs($this->user)
         ->post(route('posts.store'), [])

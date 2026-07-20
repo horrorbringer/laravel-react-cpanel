@@ -1,6 +1,8 @@
 import { Form } from '@inertiajs/react';
+import { useState } from 'react';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
+import PostEditor from '@/components/post-editor';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -22,9 +24,10 @@ export default function PostForm({
     post?: Post;
 }) {
     const isEditing = Boolean(post?.id);
+    const [content, setContent] = useState(post?.content ?? '');
 
     return (
-        <>
+        <div className="px-4 py-6 sm:px-6 lg:px-8">
             <Heading
                 title={isEditing ? 'Edit post' : 'Create post'}
                 description={
@@ -56,13 +59,15 @@ export default function PostForm({
 
                         <div className="grid gap-2">
                             <Label htmlFor="content">Content</Label>
-                            <textarea
-                                id="content"
+                            <PostEditor
+                                value={post?.content}
+                                onChange={setContent}
+                                error={errors.content}
+                            />
+                            <input
+                                type="hidden"
                                 name="content"
-                                defaultValue={post?.content}
-                                placeholder="Post content"
-                                required
-                                className="min-h-32 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-xs"
+                                value={content}
                             />
                             <InputError message={errors.content} />
                         </div>
@@ -87,6 +92,6 @@ export default function PostForm({
                     </>
                 )}
             </Form>
-        </>
+        </div>
     );
 }

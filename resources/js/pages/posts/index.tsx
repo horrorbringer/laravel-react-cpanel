@@ -56,9 +56,12 @@ export default function PostsIndex({ posts }: { posts: PaginatedPosts }) {
                                                 </Badge>
                                             )}
                                         </div>
-                                        <p className="line-clamp-2 text-sm text-muted-foreground">
-                                            {post.content}
-                                        </p>
+                                        <div
+                                            className="prose prose-sm dark:prose-invert line-clamp-2 max-w-none text-sm text-muted-foreground"
+                                            dangerouslySetInnerHTML={{
+                                                __html: post.content,
+                                            }}
+                                        />
                                     </div>
 
                                     <div className="flex shrink-0 items-center gap-2">

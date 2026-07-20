@@ -30,6 +30,15 @@ class PostController extends Controller
         return to_route('posts.index');
     }
 
+    public function show(Post $post): Response
+    {
+        abort_unless($post->published, 404);
+
+        return Inertia::render('posts/show', [
+            'post' => $post,
+        ]);
+    }
+
     public function edit(Post $post): Response
     {
         return Inertia::render('posts/edit', [

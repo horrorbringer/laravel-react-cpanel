@@ -1,0 +1,49 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Post;
+use Illuminate\Support\Str;
+use Inertia\Inertia;
+use Inertia\Response;
+
+class HomeController extends Controller
+{
+    public function index(): Response
+    {
+        $posts = Post::query()
+            ->where('published', true)
+            ->latest()
+            ->get();
+
+        $articles = $posts->map(function (Post $post) {
+            $excerpt = Str::words(
+                strip_tags((string) $post->content),
+                40,
+                '…',
+            );
+
+            return [
+                'id' => $post->id,
+                'title' => $post->title,
+                'excerpt' => $excerpt,
+                'author' => 'Author',
+                'date' => $post->created_at?->format('M j') ?? '',
+                'readingTime' => $this->readingTime((string) $post->content),
+                'tag' => $post->published ? 'Published' : 'Draft',
+            ];
+        });
+
+        return Inertia::render('welcome', [
+            'articles' => $articles,
+        ]);
+    }
+
+    private function readingTime(string $content): string
+    {
+        $words = str_word_count(strip_tags($content)) ?: 0;
+        $minutes = max(1, (int) ceil($words / 200));
+
+        return $minutes.' min read';
+    }
+}

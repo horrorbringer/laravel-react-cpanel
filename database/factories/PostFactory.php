@@ -6,7 +6,7 @@ use App\Models\Post;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Post>
+ * @extends Factory<Post>
  */
 class PostFactory extends Factory
 {
@@ -16,7 +16,7 @@ class PostFactory extends Factory
     {
         return [
             'title' => fake()->sentence(),
-            'content' => fake()->paragraph(),
+            'content' => '<p>'.fake()->paragraph().'</p>',
             'published' => fake()->boolean(),
         ];
     }
