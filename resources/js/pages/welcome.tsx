@@ -1,6 +1,5 @@
 import { Head, Link, usePage } from '@inertiajs/react';
-import { dashboard, login, register } from '@/routes';
-import { index as posts } from '@/routes/posts';
+import AppLogo from '@/components/app-logo';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -9,7 +8,8 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import AppLogo from '@/components/app-logo';
+import { dashboard, login, register } from '@/routes';
+import { index as posts } from '@/routes/posts';
 import type { Auth } from '@/types';
 
 export default function Welcome() {

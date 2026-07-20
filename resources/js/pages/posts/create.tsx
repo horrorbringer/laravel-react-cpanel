@@ -3,13 +3,6 @@ import PostController from '@/actions/App/Http/Controllers/PostController';
 import PostForm from '@/pages/posts/post-form';
 import type { BreadcrumbItem } from '@/types';
 
-type Post = {
-    id?: number;
-    title?: string;
-    content?: string;
-    published?: boolean;
-};
-
 export default function PostsCreate() {
     return (
         <>

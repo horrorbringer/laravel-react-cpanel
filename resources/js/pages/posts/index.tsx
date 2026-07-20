@@ -1,8 +1,8 @@
 import { Head, Link, router } from '@inertiajs/react';
 import PostController from '@/actions/App/Http/Controllers/PostController';
 import Heading from '@/components/heading';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import type { BreadcrumbItem } from '@/types';
 
