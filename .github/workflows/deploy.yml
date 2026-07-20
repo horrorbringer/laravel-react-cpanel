@@ -17,6 +17,15 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
+    env:
+      FTP_SERVER: ${{ secrets.FTP_SERVER }}
+      FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+      FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+      FTP_PORT: ${{ secrets.FTP_PORT || 21 }}
+      FTP_SERVER_DIR: ${{ secrets.FTP_SERVER_DIR }}
+      APP_URL: ${{ secrets.APP_URL }}
+      DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -87,13 +96,13 @@ jobs:
       - name: Deploy to cPanel via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.1
         with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          port: ${{ secrets.FTP_PORT || 21 }}
+          server: ${{ env.FTP_SERVER }}
+          username: ${{ env.FTP_USERNAME }}
+          password: ${{ env.FTP_PASSWORD }}
+          port: ${{ env.FTP_PORT }}
           protocol: ftp
           local-dir: ./
-          server-dir: ${{ secrets.FTP_SERVER_DIR }}/
+          server-dir: ${{ env.FTP_SERVER_DIR }}/
           exclude: |
             **/.git*
             **/node_modules/**
@@ -126,9 +135,9 @@ jobs:
             # Only the example/template files are excluded above.
 
       - name: Trigger post-deploy Artisan hook
-        if: ${{ secrets.DEPLOY_TOKEN != '' && secrets.APP_URL != '' }}
+        if: ${{ env.DEPLOY_TOKEN != '' && env.APP_URL != '' }}
         run: |
-          URL="${{ secrets.APP_URL }}/deploy?token=${{ secrets.DEPLOY_TOKEN }}"
+          URL="${{ env.APP_URL }}/deploy?token=${{ env.DEPLOY_TOKEN }}"
           echo "Calling post-deploy hook: ${URL}"
           curl -fsSL "$URL" || echo "Hook call failed (check APP_URL/DEPLOY_TOKEN secrets)."
 
