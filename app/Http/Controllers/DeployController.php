@@ -15,6 +15,8 @@ class DeployController extends Controller
             abort(403);
         }
 
+        // Order matters: migrate first so tables (cache, sessions, etc.)
+        // exist before any cache-clearing command touches them.
         $commands = [
             'migrate --force' => ['migrate', ['--force' => true]],
             'config:clear' => ['config:clear', []],
@@ -23,6 +25,10 @@ class DeployController extends Controller
             'cache:clear' => ['cache:clear', []],
             'storage:link' => ['storage:link', []],
         ];
+
+        // Commands that may legitimately fail on a fresh DB (table not yet
+        // created) should not mark the whole deploy as failed.
+        $nonCritical = ['cache:clear'];
 
         $results = [];
         $failed = false;
@@ -35,11 +41,14 @@ class DeployController extends Controller
                     'output' => Artisan::output(),
                 ];
             } catch (\Throwable $e) {
-                $failed = true;
                 $results[$label] = [
                     'code' => 1,
                     'error' => $e->getMessage(),
                 ];
+
+                if (! in_array($label, $nonCritical, true)) {
+                    $failed = true;
+                }
             }
         }
 

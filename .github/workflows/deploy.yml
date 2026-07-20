@@ -78,6 +78,8 @@ jobs:
           set_key APP_ENV "production"
           set_key APP_DEBUG "false"
           set_key APP_URL "${{ secrets.APP_URL || 'https://spa.kimmex.com.kh' }}"
+          set_key SESSION_DRIVER "file"
+          set_key CACHE_DRIVER "file"
           set_key DB_CONNECTION "${{ secrets.DB_CONNECTION }}"
           set_key DB_HOST "${{ secrets.DB_HOST }}"
           set_key DB_PORT "${{ secrets.DB_PORT }}"
@@ -111,7 +113,8 @@ jobs:
             **/.env.local
             **/.env.*.local
             **/tests/**
-            **/database/**
+            **/database/seeders/**
+            **/database/factories/
             **/bootstrap/cache/*.php
             **/storage/*.key
             **/storage/pail/**
