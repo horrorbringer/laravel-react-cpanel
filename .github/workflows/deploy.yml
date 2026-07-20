@@ -26,7 +26,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
         with:
-          php-version: '8.4'
+          php-version: '8.3'
           tools: composer:v2
           coverage: none
 
@@ -77,9 +77,11 @@ jobs:
           set_key DB_PASSWORD "${{ secrets.DB_PASSWORD }}"
 
           php artisan key:generate
-          php artisan config:cache
-          php artisan route:cache
-          php artisan view:cache
+
+          # NOTE: Do NOT run config:cache / route:cache / view:cache here.
+          # They bake the CI runner's absolute paths (e.g. /home/runner/...)
+          # into bootstrap/cache/*.php, which breaks the app on the server.
+          # The server resolves paths at runtime from its own storage/ dir.
 
       - name: Deploy to cPanel via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.1
@@ -93,7 +95,6 @@ jobs:
           server-dir: ${{ secrets.FTP_SERVER_DIR }}/
           exclude: |
             **/.git*
-            **/.github/**
             **/node_modules/**
             **/.env.example
             **/.env.backup
@@ -101,6 +102,7 @@ jobs:
             **/.env.*.local
             **/tests/**
             **/database/**
+            **/bootstrap/cache/*.php
             **/storage/*.key
             **/storage/pail/**
             **/storage/logs/**
@@ -122,3 +124,11 @@ jobs:
             # .env is generated in CI from GitHub secrets and IS deployed on purpose.
             # Only the example/template files are excluded above.
 
+      - name: Post-deploy server checklist
+        run: |
+          echo "After this deploy finishes:"
+          echo "1. In cPanel File Manager, delete everything inside bootstrap/cache/ except .gitignore"
+          echo "   (clears any stale /home/runner/... paths from a previous cached build)."
+          echo "2. Set permissions to 755 on: storage/, storage/framework/{cache,sessions,views,logs}, bootstrap/cache/"
+          echo "3. Ensure storage/logs/ exists (create it if missing)."
+          echo "4. Create the MySQL database in cPanel and run migrations once (no SSH available)."
