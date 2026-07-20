@@ -35,8 +35,24 @@ class PostController extends Controller
         abort_unless($post->published, 404);
 
         return Inertia::render('posts/show', [
-            'post' => $post,
+            'post' => $this->toArticle($post),
         ]);
+    }
+
+    private function toArticle(Post $post): array
+    {
+        $words = str_word_count(strip_tags((string) $post->content)) ?: 0;
+        $minutes = max(1, (int) ceil($words / 200));
+
+        return [
+            'id' => $post->id,
+            'title' => $post->title,
+            'content' => $post->content,
+            'published' => $post->published,
+            'author' => 'Author',
+            'readingTime' => $minutes.' min read',
+            'created_at' => $post->created_at?->toISOString(),
+        ];
     }
 
     public function edit(Post $post): Response

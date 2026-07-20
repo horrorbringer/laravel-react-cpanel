@@ -1,10 +1,12 @@
 import { Head, Link, usePage } from '@inertiajs/react';
+import { Moon, Sun } from 'lucide-react';
 import { show as showPost } from '@/actions/App/Http/Controllers/PostController';
 import AppLogo from '@/components/app-logo';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { useAppearance } from '@/hooks/use-appearance';
 import { dashboard, login, register } from '@/routes';
 import { index as posts } from '@/routes/posts';
 import type { Auth } from '@/types';
@@ -38,6 +40,7 @@ export default function Welcome() {
         auth: Auth;
         articles: Article[];
     }>().props;
+    const { resolvedAppearance, updateAppearance } = useAppearance();
 
     const featured: Article | undefined = articles[0];
     const rest: Article[] = articles.slice(1);
@@ -47,9 +50,9 @@ export default function Welcome() {
             <Head title="Knowledge" />
 
             <div className="flex min-h-screen flex-col bg-background text-foreground">
-                <header className="sticky top-0 z-10 border-b bg-background/80 backdrop-blur">
-                    <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-4 sm:px-6">
-                        <div className="flex items-center gap-6">
+                <header className="sticky top-0 z-10 border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                    <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
+                        <div className="flex min-w-0 items-center gap-5">
                             <AppLogo />
                             <nav className="hidden items-center gap-5 text-sm text-muted-foreground sm:flex">
                                 <a
@@ -66,14 +69,37 @@ export default function Welcome() {
                                 </a>
                             </nav>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex shrink-0 items-center gap-2">
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                aria-label="Toggle theme"
+                                onClick={() =>
+                                    updateAppearance(
+                                        resolvedAppearance === 'dark'
+                                            ? 'light'
+                                            : 'dark',
+                                    )
+                                }
+                                className="h-9 w-9"
+                            >
+                                {resolvedAppearance === 'dark' ? (
+                                    <Sun className="h-4 w-4" />
+                                ) : (
+                                    <Moon className="h-4 w-4" />
+                                )}
+                            </Button>
                             {auth.user ? (
                                 <Button asChild>
                                     <Link href={dashboard()}>Dashboard</Link>
                                 </Button>
                             ) : (
                                 <>
-                                    <Button variant="ghost" asChild>
+                                    <Button
+                                        variant="ghost"
+                                        asChild
+                                        className="hidden sm:inline-flex"
+                                    >
                                         <Link href={login()}>Log in</Link>
                                     </Button>
                                     <Button asChild>
@@ -90,16 +116,16 @@ export default function Welcome() {
                 <main className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6">
                     {featured ? (
                         <section className="border-b pb-10">
-                        <Badge variant="secondary" className="mb-4">
-                            Featured
-                        </Badge>
-                        <Link
-                            href={showPost({ post: featured.id })}
-                            className="group block"
-                        >
-                            <h1 className="text-3xl leading-tight font-bold tracking-tight group-hover:text-primary sm:text-4xl">
-                                {featured.title}
-                            </h1>
+                            <Badge variant="secondary" className="mb-4">
+                                Featured
+                            </Badge>
+                            <Link
+                                href={showPost({ post: featured.id })}
+                                className="group block rounded-xl outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/50"
+                            >
+                                <h1 className="text-3xl leading-tight font-bold tracking-tight transition-colors group-hover:text-primary sm:text-4xl">
+                                    {featured.title}
+                                </h1>
                                 <p className="mt-4 text-lg text-muted-foreground">
                                     {featured.excerpt}
                                 </p>
@@ -140,13 +166,13 @@ export default function Welcome() {
                                             {article.tag}
                                         </Badge>
                                         <CardContent className="px-0">
-                                                <Link
-                                                    href={showPost({
-                                                        post: article.id,
-                                                    })}
-                                                    className="group block"
-                                                >
-                                                <h3 className="text-lg leading-snug font-semibold tracking-tight group-hover:text-primary">
+                                            <Link
+                                                href={showPost({
+                                                    post: article.id,
+                                                })}
+                                                className="group block rounded-lg outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/50"
+                                            >
+                                                <h3 className="text-lg leading-snug font-semibold tracking-tight transition-colors group-hover:text-primary">
                                                     {article.title}
                                                 </h3>
                                                 <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">
