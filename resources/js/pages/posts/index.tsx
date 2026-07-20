@@ -35,66 +35,72 @@ export default function PostsIndex({ posts }: { posts: PaginatedPosts }) {
                 </div>
 
                 <div className="mt-6 space-y-4">
-                {posts.data.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">
-                        No posts yet.
-                    </p>
-                ) : (
-                    posts.data.map((post) => (
-                        <Card key={post.id}>
-                            <CardContent className="flex items-start justify-between gap-4 py-4">
-                                <div className="space-y-1">
-                                    <div className="flex items-center gap-2">
-                                        <span className="font-medium">
-                                            {post.title}
-                                        </span>
-                                        {post.published ? (
-                                            <Badge>Published</Badge>
-                                        ) : (
-                                            <Badge variant="secondary">
-                                                Draft
-                                            </Badge>
-                                        )}
+                    {posts.data.length === 0 ? (
+                        <p className="text-sm text-muted-foreground">
+                            No posts yet.
+                        </p>
+                    ) : (
+                        posts.data.map((post) => (
+                            <Card key={post.id}>
+                                <CardContent className="flex items-start justify-between gap-4 py-4">
+                                    <div className="space-y-1">
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-medium">
+                                                {post.title}
+                                            </span>
+                                            {post.published ? (
+                                                <Badge>Published</Badge>
+                                            ) : (
+                                                <Badge variant="secondary">
+                                                    Draft
+                                                </Badge>
+                                            )}
+                                        </div>
+                                        <p className="line-clamp-2 text-sm text-muted-foreground">
+                                            {post.content}
+                                        </p>
                                     </div>
-                                    <p className="line-clamp-2 text-sm text-muted-foreground">
-                                        {post.content}
-                                    </p>
-                                </div>
 
-                                <div className="flex shrink-0 items-center gap-2">
-                                    <Button asChild variant="outline" size="sm">
-                                        <Link
-                                            href={PostController.edit({
-                                                post: post.id,
-                                            }).url}
+                                    <div className="flex shrink-0 items-center gap-2">
+                                        <Button
+                                            asChild
+                                            variant="outline"
+                                            size="sm"
                                         >
-                                            Edit
-                                        </Link>
-                                    </Button>
-                                    <Button
-                                        variant="destructive"
-                                        size="sm"
-                                        onClick={() => {
-                                            if (
-                                                confirm(
-                                                    'Are you sure you want to delete this post?',
-                                                )
-                                            ) {
-                                                router.delete(
-                                                    PostController.destroy({
+                                            <Link
+                                                href={
+                                                    PostController.edit({
                                                         post: post.id,
-                                                    }).url,
-                                                );
-                                            }
-                                        }}
-                                    >
-                                        Delete
-                                    </Button>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))
-                )}
+                                                    }).url
+                                                }
+                                            >
+                                                Edit
+                                            </Link>
+                                        </Button>
+                                        <Button
+                                            variant="destructive"
+                                            size="sm"
+                                            onClick={() => {
+                                                if (
+                                                    confirm(
+                                                        'Are you sure you want to delete this post?',
+                                                    )
+                                                ) {
+                                                    router.delete(
+                                                        PostController.destroy({
+                                                            post: post.id,
+                                                        }).url,
+                                                    );
+                                                }
+                                            }}
+                                        >
+                                            Delete
+                                        </Button>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ))
+                    )}
                 </div>
             </div>
         </>
