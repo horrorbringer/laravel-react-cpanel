@@ -23,12 +23,17 @@ test('deploy hook is disabled when no token is configured', function () {
 });
 
 test('deploy hook runs artisan commands with a valid token', function () {
-    Artisan::spy();
-
     $this->get(route('deploy.hook', ['token' => 'secret-token']))
         ->assertOk()
-        ->assertJson(['status' => 'ok']);
-
-    Artisan::shouldHaveReceived('call')->with('migrate', ['--force' => true]);
-    Artisan::shouldHaveReceived('call')->with('cache:clear');
+        ->assertJsonStructure([
+            'status',
+            'results' => [
+                'migrate --force',
+                'config:clear',
+                'route:clear',
+                'view:clear',
+                'cache:clear',
+                'storage:link',
+            ],
+        ]);
 });

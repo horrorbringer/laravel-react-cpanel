@@ -16,26 +16,36 @@ class DeployController extends Controller
         }
 
         $commands = [
-            'migrate --force' => Artisan::call('migrate', ['--force' => true]),
-            'config:clear' => Artisan::call('config:clear'),
-            'route:clear' => Artisan::call('route:clear'),
-            'view:clear' => Artisan::call('view:clear'),
-            'cache:clear' => Artisan::call('cache:clear'),
-            'storage:link' => Artisan::call('storage:link'),
+            'migrate --force' => ['migrate', ['--force' => true]],
+            'config:clear' => ['config:clear', []],
+            'route:clear' => ['route:clear', []],
+            'view:clear' => ['view:clear', []],
+            'cache:clear' => ['cache:clear', []],
+            'storage:link' => ['storage:link', []],
         ];
 
-        $output = [];
+        $results = [];
+        $failed = false;
 
-        foreach ($commands as $label => $code) {
-            $output[$label] = [
-                'code' => $code,
-                'output' => Artisan::output(),
-            ];
+        foreach ($commands as $label => [$command, $args]) {
+            try {
+                $code = Artisan::call($command, $args);
+                $results[$label] = [
+                    'code' => $code,
+                    'output' => Artisan::output(),
+                ];
+            } catch (\Throwable $e) {
+                $failed = true;
+                $results[$label] = [
+                    'code' => 1,
+                    'error' => $e->getMessage(),
+                ];
+            }
         }
 
         return response()->json([
-            'status' => 'ok',
-            'results' => $output,
-        ]);
+            'status' => $failed ? 'error' : 'ok',
+            'results' => $results,
+        ], $failed ? 500 : 200);
     }
 }
