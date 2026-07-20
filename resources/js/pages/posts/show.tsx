@@ -97,7 +97,7 @@ export default function PostShow({ post }: { post: Post }) {
                         <Separator className="my-8" />
 
                         <div
-                            className="prose prose-lg dark:prose-invert max-w-none font-serif prose-headings:font-serif prose-headings:font-bold prose-a:text-primary prose-p:leading-relaxed"
+                            className="prose prose-lg dark:prose-invert max-w-none font-serif prose-headings:font-serif prose-headings:font-bold prose-a:text-primary prose-p:leading-relaxed prose-img:mx-auto prose-img:rounded-md"
                             dangerouslySetInnerHTML={{ __html: post.content }}
                         />
                     </article>

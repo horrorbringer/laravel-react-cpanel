@@ -1,3 +1,4 @@
+import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -49,6 +50,11 @@ export default function PostEditor({
                     rel: 'noopener noreferrer',
                 },
             }),
+            Image.configure({
+                HTMLAttributes: {
+                    class: 'rounded-md',
+                },
+            }),
         ],
         content: value ?? '',
         editorProps: {
@@ -95,11 +101,7 @@ export default function PostEditor({
             return;
         }
 
-        (editor.chain().focus() as unknown as {
-            setImage: (attrs: { src: string }) => { run: () => void };
-        })
-            .setImage({ src: url })
-            .run();
+        editor.chain().focus().setImage({ src: url }).run();
     };
 
     return (
