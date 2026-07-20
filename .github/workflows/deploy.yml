@@ -55,8 +55,12 @@ jobs:
             local key="$1"
             local value="$2"
             [ -z "$value" ] && return 0
+            # Handle an already-active key.
             if grep -q "^${key}=" .env; then
               sed -i "s|^${key}=.*|${key}=${value}|" .env
+            # Handle a commented-out key (e.g. "# DB_HOST=127.0.0.1").
+            elif grep -q "^#[[:space:]]*${key}=" .env; then
+              sed -i "s|^#[[:space:]]*${key}=.*|${key}=${value}|" .env
             else
               echo "${key}=${value}" >> .env
             fi
