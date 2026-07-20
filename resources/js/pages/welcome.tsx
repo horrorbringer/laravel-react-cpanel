@@ -115,7 +115,7 @@ export default function Welcome() {
                                 href={showPost({ post: featured.id })}
                                 className="group block outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
                             >
-                                <h1 className="font-serif text-4xl leading-[1.15] font-bold tracking-tight transition-colors group-hover:text-primary sm:text-5xl">
+                                <h1 className="font-serif text-2xl leading-[1.2] font-bold tracking-tight transition-colors group-hover:text-primary sm:text-3xl">
                                     {featured.title}
                                 </h1>
                                 <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
@@ -142,7 +142,7 @@ export default function Welcome() {
                                     href={showPost({ post: article.id })}
                                     className="group block py-8 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/50"
                                 >
-                                    <h2 className="font-serif text-2xl leading-snug font-bold tracking-tight transition-colors group-hover:text-primary">
+                                    <h2 className="font-serif text-xl leading-snug font-bold tracking-tight transition-colors group-hover:text-primary">
                                         {article.title}
                                     </h2>
                                     <p className="mt-2 line-clamp-2 text-base leading-relaxed text-muted-foreground">

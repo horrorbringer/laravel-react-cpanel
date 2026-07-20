@@ -73,7 +73,7 @@ export default function PostShow({ post }: { post: Post }) {
 
                 <main className="mx-auto w-full max-w-[680px] px-4 py-12 sm:px-6 sm:py-16">
                     <article>
-                        <h1 className="font-serif text-4xl leading-[1.15] font-bold tracking-tight sm:text-5xl">
+                        <h1 className="font-serif text-2xl leading-[1.2] font-bold tracking-tight sm:text-3xl">
                             {post.title}
                         </h1>
 

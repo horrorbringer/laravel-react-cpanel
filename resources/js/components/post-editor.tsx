@@ -1,10 +1,12 @@
+import Link from '@tiptap/extension-link';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { Button } from '@/components/ui/button';
 
+
 type ToolbarButtonProps = {
     label: string;
-    isActive: boolean;
+    isActive?: boolean;
     onClick: () => void;
 };
 
@@ -40,6 +42,13 @@ export default function PostEditor({
                     levels: [2, 3],
                 },
             }),
+            Link.configure({
+                openOnClick: false,
+                HTMLAttributes: {
+                    class: 'text-primary underline underline-offset-2',
+                    rel: 'noopener noreferrer',
+                },
+            }),
         ],
         content: value ?? '',
         editorProps: {
@@ -56,6 +65,42 @@ export default function PostEditor({
     if (!editor) {
         return null;
     }
+
+    const setLink = () => {
+        const previous = editor.getAttributes('link').href as string | undefined;
+        const url = window.prompt('Link URL', previous ?? 'https://');
+
+        if (url === null) {
+            return;
+        }
+
+        if (url === '') {
+            editor.chain().focus().extendMarkRange('link').unsetLink().run();
+
+            return;
+        }
+
+        editor
+            .chain()
+            .focus()
+            .extendMarkRange('link')
+            .setLink({ href: url })
+            .run();
+    };
+
+    const setImage = () => {
+        const url = window.prompt('Image URL', 'https://');
+
+        if (!url) {
+            return;
+        }
+
+        (editor.chain().focus() as unknown as {
+            setImage: (attrs: { src: string }) => { run: () => void };
+        })
+            .setImage({ src: url })
+            .run();
+    };
 
     return (
         <div className="grid gap-2">
@@ -117,6 +162,12 @@ export default function PostEditor({
                         editor.chain().focus().toggleCodeBlock().run()
                     }
                 />
+                <ToolbarButton
+                    label="Link"
+                    isActive={editor.isActive('link')}
+                    onClick={setLink}
+                />
+                <ToolbarButton label="Image" onClick={setImage} />
             </div>
 
             <EditorContent editor={editor} />

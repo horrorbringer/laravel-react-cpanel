@@ -3,7 +3,15 @@ import PostController from '@/actions/App/Http/Controllers/PostController';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
 import type { BreadcrumbItem } from '@/types';
 
 type Post = {
@@ -18,7 +26,17 @@ type PaginatedPosts = {
     data: Post[];
 };
 
+function stripHtml(html: string): string {
+    return html.replace(/<[^>]*>/g, '');
+}
+
 export default function PostsIndex({ posts }: { posts: PaginatedPosts }) {
+    const deletePost = (id: number) => {
+        if (confirm('Are you sure you want to delete this post?')) {
+            router.delete(PostController.destroy({ post: id }).url);
+        }
+    };
+
     return (
         <>
             <Head title="Posts" />
@@ -34,20 +52,43 @@ export default function PostsIndex({ posts }: { posts: PaginatedPosts }) {
                     </Button>
                 </div>
 
-                <div className="mt-6 space-y-4">
+                <div className="mt-6">
                     {posts.data.length === 0 ? (
                         <p className="text-sm text-muted-foreground">
                             No posts yet.
                         </p>
                     ) : (
-                        posts.data.map((post) => (
-                            <Card key={post.id}>
-                                <CardContent className="flex items-start justify-between gap-4 py-4">
-                                    <div className="space-y-1">
-                                        <div className="flex items-center gap-2">
-                                            <span className="font-medium">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead className="w-10">
+                                        <span className="sr-only">
+                                            Select
+                                        </span>
+                                    </TableHead>
+                                    <TableHead>Title</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead>Created</TableHead>
+                                    <TableHead className="text-right">
+                                        Actions
+                                    </TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {posts.data.map((post) => (
+                                    <TableRow key={post.id}>
+                                        <TableCell>
+                                            <Checkbox aria-label="Select post" />
+                                        </TableCell>
+                                        <TableCell className="max-w-md">
+                                            <div className="font-medium">
                                                 {post.title}
-                                            </span>
+                                            </div>
+                                            <div className="line-clamp-1 text-sm text-muted-foreground">
+                                                {stripHtml(post.content)}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
                                             {post.published ? (
                                                 <Badge>Published</Badge>
                                             ) : (
@@ -55,54 +96,46 @@ export default function PostsIndex({ posts }: { posts: PaginatedPosts }) {
                                                     Draft
                                                 </Badge>
                                             )}
-                                        </div>
-                                        <div
-                                            className="prose prose-sm dark:prose-invert line-clamp-2 max-w-none text-sm text-muted-foreground"
-                                            dangerouslySetInnerHTML={{
-                                                __html: post.content,
-                                            }}
-                                        />
-                                    </div>
-
-                                    <div className="flex shrink-0 items-center gap-2">
-                                        <Button
-                                            asChild
-                                            variant="outline"
-                                            size="sm"
-                                        >
-                                            <Link
-                                                href={
-                                                    PostController.edit({
-                                                        post: post.id,
-                                                    }).url
-                                                }
-                                            >
-                                                Edit
-                                            </Link>
-                                        </Button>
-                                        <Button
-                                            variant="destructive"
-                                            size="sm"
-                                            onClick={() => {
-                                                if (
-                                                    confirm(
-                                                        'Are you sure you want to delete this post?',
-                                                    )
-                                                ) {
-                                                    router.delete(
-                                                        PostController.destroy({
-                                                            post: post.id,
-                                                        }).url,
-                                                    );
-                                                }
-                                            }}
-                                        >
-                                            Delete
-                                        </Button>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        ))
+                                        </TableCell>
+                                        <TableCell className="text-muted-foreground">
+                                            {post.created_at
+                                                ? new Date(
+                                                      post.created_at,
+                                                  ).toLocaleDateString()
+                                                : '—'}
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <div className="flex justify-end gap-2">
+                                                <Button
+                                                    asChild
+                                                    variant="outline"
+                                                    size="sm"
+                                                >
+                                                    <Link
+                                                        href={PostController.edit(
+                                                            {
+                                                                post: post.id,
+                                                            },
+                                                        ).url}
+                                                    >
+                                                        Edit
+                                                    </Link>
+                                                </Button>
+                                                <Button
+                                                    variant="destructive"
+                                                    size="sm"
+                                                    onClick={() =>
+                                                        deletePost(post.id)
+                                                    }
+                                                >
+                                                    Delete
+                                                </Button>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
                     )}
                 </div>
             </div>
