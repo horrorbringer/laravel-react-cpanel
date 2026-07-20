@@ -16,6 +16,15 @@ type Post = {
     created_at: string;
 };
 
+function initials(name: string): string {
+    return name
+        .split(' ')
+        .map((part) => part.charAt(0))
+        .slice(0, 2)
+        .join('')
+        .toUpperCase();
+}
+
 export default function PostShow({ post }: { post: Post }) {
     const { resolvedAppearance, updateAppearance } = useAppearance();
 
@@ -32,7 +41,7 @@ export default function PostShow({ post }: { post: Post }) {
             <Head title={post.title} />
 
             <div className="flex min-h-screen flex-col bg-background text-foreground">
-                <header className="sticky top-0 z-10 border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                <header className="sticky top-0 z-10 border-b border-border/70 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
                     <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
                         <AppLogo />
                         <div className="flex shrink-0 items-center gap-2">
@@ -62,39 +71,39 @@ export default function PostShow({ post }: { post: Post }) {
                     </div>
                 </header>
 
-                <main className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
+                <main className="mx-auto w-full max-w-[680px] px-4 py-12 sm:px-6 sm:py-16">
                     <article>
-                        <h1 className="text-3xl leading-tight font-bold tracking-tight sm:text-4xl">
+                        <h1 className="font-serif text-4xl leading-[1.15] font-bold tracking-tight sm:text-5xl">
                             {post.title}
                         </h1>
-                        <div className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
-                            {post.author && (
-                                <>
-                                    <span className="font-medium text-foreground">
-                                        {post.author}
-                                    </span>
-                                    <span>·</span>
-                                </>
-                            )}
-                            {formattedDate && <span>{formattedDate}</span>}
-                            {post.readingTime && (
-                                <>
-                                    <span>·</span>
-                                    <span>{post.readingTime}</span>
-                                </>
-                            )}
+
+                        <div className="mt-6 flex items-center gap-3">
+                            <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-medium text-foreground">
+                                {initials(post.author || 'A')}
+                            </div>
+                            <div className="text-sm leading-tight">
+                                <div className="font-medium text-foreground">
+                                    {post.author}
+                                </div>
+                                <div className="text-muted-foreground">
+                                    {formattedDate}
+                                    {post.readingTime && (
+                                        <> · {post.readingTime}</>
+                                    )}
+                                </div>
+                            </div>
                         </div>
 
                         <Separator className="my-8" />
 
                         <div
-                            className="prose prose-sm dark:prose-invert max-w-none prose-headings:font-semibold prose-a:text-primary"
+                            className="prose prose-lg dark:prose-invert max-w-none font-serif prose-headings:font-serif prose-headings:font-bold prose-a:text-primary prose-p:leading-relaxed"
                             dangerouslySetInnerHTML={{ __html: post.content }}
                         />
                     </article>
                 </main>
 
-                <footer className="border-t px-4 py-6 text-center text-sm text-muted-foreground sm:px-6">
+                <footer className="border-t border-border/70 px-4 py-8 text-center text-sm text-muted-foreground sm:px-6">
                     Knowledge — a quiet place to read and write. Built with
                     Laravel, Inertia & React.
                 </footer>
