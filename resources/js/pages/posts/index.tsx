@@ -1,9 +1,10 @@
 import { Head, Link, router } from '@inertiajs/react';
+import { useEffect, useRef, useState } from 'react';
 import PostController from '@/actions/App/Http/Controllers/PostController';
 import Heading from '@/components/heading';
+import { SearchInput } from '@/components/search-input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
     Table,
     TableBody,
@@ -26,11 +27,40 @@ type PaginatedPosts = {
     data: Post[];
 };
 
+type Filters = {
+    search?: string;
+};
+
 function stripHtml(html: string): string {
     return html.replace(/<[^>]*>/g, '');
 }
 
-export default function PostsIndex({ posts }: { posts: PaginatedPosts }) {
+export default function PostsIndex({
+    posts,
+    filters,
+}: {
+    posts: PaginatedPosts;
+    filters: Filters;
+}) {
+    const [search, setSearch] = useState(filters.search ?? '');
+    const debounce = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+    useEffect(() => {
+        debounce.current = setTimeout(() => {
+            if ((filters.search ?? '') === search) {
+                return;
+            }
+
+            router.get(
+                PostController.index().url,
+                { search: search || undefined },
+                { preserveState: true, replace: true },
+            );
+        }, 300);
+
+        return () => clearTimeout(debounce.current);
+    }, [search]);
+
     const deletePost = (id: number) => {
         if (confirm('Are you sure you want to delete this post?')) {
             router.delete(PostController.destroy({ post: id }).url);
@@ -42,7 +72,7 @@ export default function PostsIndex({ posts }: { posts: PaginatedPosts }) {
             <Head title="Posts" />
 
             <div className="px-4 py-6 sm:px-6 lg:px-8">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-4">
                     <Heading
                         title="Posts"
                         description="Manage your blog posts"
@@ -52,20 +82,25 @@ export default function PostsIndex({ posts }: { posts: PaginatedPosts }) {
                     </Button>
                 </div>
 
+                <div className="mt-6 max-w-sm">
+                    <SearchInput
+                        value={search}
+                        onChange={setSearch}
+                        placeholder="Search your posts"
+                    />
+                </div>
+
                 <div className="mt-6">
                     {posts.data.length === 0 ? (
                         <p className="text-sm text-muted-foreground">
-                            No posts yet.
+                            {search
+                                ? 'No posts match your search.'
+                                : 'No posts yet.'}
                         </p>
                     ) : (
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead className="w-10">
-                                        <span className="sr-only">
-                                            Select
-                                        </span>
-                                    </TableHead>
                                     <TableHead>Title</TableHead>
                                     <TableHead>Status</TableHead>
                                     <TableHead>Created</TableHead>
@@ -77,9 +112,6 @@ export default function PostsIndex({ posts }: { posts: PaginatedPosts }) {
                             <TableBody>
                                 {posts.data.map((post) => (
                                     <TableRow key={post.id}>
-                                        <TableCell>
-                                            <Checkbox aria-label="Select post" />
-                                        </TableCell>
                                         <TableCell className="max-w-md">
                                             <div className="font-medium">
                                                 {post.title}

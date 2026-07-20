@@ -1,4 +1,4 @@
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Moon, PenLine, Sun } from 'lucide-react';
 import {
     create as createPost,
@@ -6,10 +6,13 @@ import {
 } from '@/actions/App/Http/Controllers/PostController';
 import { show as showPost } from '@/actions/App/Http/Controllers/PostController';
 import AppLogo from '@/components/app-logo';
+import { SearchInput } from '@/components/search-input';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useAppearance } from '@/hooks/use-appearance';
+import { home } from '@/routes';
 import { login, register } from '@/routes';
+import { useEffect, useRef, useState } from 'react';
 import type { Auth } from '@/types';
 
 type Article = {
@@ -20,6 +23,10 @@ type Article = {
     date: string;
     readingTime: string;
     tag: string;
+};
+
+type Filters = {
+    search?: string;
 };
 
 function ArticleMeta({ article }: { article: Article }) {
@@ -37,11 +44,31 @@ function ArticleMeta({ article }: { article: Article }) {
 }
 
 export default function Welcome() {
-    const { auth, articles } = usePage<{
+    const { auth, articles, filters } = usePage<{
         auth: Auth;
         articles: Article[];
+        filters: Filters;
     }>().props;
     const { resolvedAppearance, updateAppearance } = useAppearance();
+
+    const [search, setSearch] = useState(filters.search ?? '');
+    const debounce = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+    useEffect(() => {
+        debounce.current = setTimeout(() => {
+            if ((filters.search ?? '') === search) {
+                return;
+            }
+
+            router.get(
+                home().url,
+                { search: search || undefined },
+                { preserveState: true, replace: true },
+            );
+        }, 300);
+
+        return () => clearTimeout(debounce.current);
+    }, [search]);
 
     const featured: Article | undefined = articles[0];
     const rest: Article[] = articles.slice(1);
@@ -118,7 +145,7 @@ export default function Welcome() {
                                 <h1 className="font-serif text-2xl leading-[1.2] font-bold tracking-tight transition-colors group-hover:text-primary sm:text-3xl">
                                     {featured.title}
                                 </h1>
-                                <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
+                                <p className="mt-4 line-clamp-2 text-lg leading-relaxed text-muted-foreground">
                                     {featured.excerpt}
                                 </p>
                                 <div className="mt-5">

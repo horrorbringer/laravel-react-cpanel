@@ -24,11 +24,17 @@ class DeployController extends Controller
             'view:clear' => ['view:clear', []],
             'cache:clear' => ['cache:clear', []],
             'storage:link' => ['storage:link', []],
+            // Warm the caches so the production app runs fast (no per-request
+            // config/routes/views discovery).
+            'config:cache' => ['config:cache', []],
+            'route:cache' => ['route:cache', []],
+            'view:cache' => ['view:cache', []],
+            'event:cache' => ['event:cache', []],
         ];
 
         // Commands that may legitimately fail on a fresh DB (table not yet
         // created) should not mark the whole deploy as failed.
-        $nonCritical = ['cache:clear'];
+        $nonCritical = ['cache:clear', 'config:cache', 'route:cache', 'view:cache', 'event:cache'];
 
         $results = [];
         $failed = false;

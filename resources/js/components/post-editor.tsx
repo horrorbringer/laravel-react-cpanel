@@ -2,26 +2,57 @@ import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
+import {
+    Bold,
+    Code,
+    Heading2,
+    Heading3,
+    Image as ImageIcon,
+    Italic,
+    Link as LinkIcon,
+    List,
+    ListOrdered,
+    Quote,
+    Strikethrough,
+    Underline as UnderlineIcon,
+} from 'lucide-react';
+import type { ComponentType } from 'react';
 import { Button } from '@/components/ui/button';
-
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 type ToolbarButtonProps = {
     label: string;
+    icon: ComponentType<{ className?: string }>;
     isActive?: boolean;
     onClick: () => void;
 };
 
-function ToolbarButton({ label, isActive, onClick }: ToolbarButtonProps) {
+function ToolbarButton({ label, icon: Icon, isActive, onClick }: ToolbarButtonProps) {
     return (
-        <Button
-            type="button"
-            variant={isActive ? 'default' : 'outline'}
-            size="sm"
-            onClick={onClick}
-            className="h-8 px-2"
-        >
-            {label}
-        </Button>
+        <Tooltip>
+            <TooltipTrigger asChild>
+                <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    aria-label={label}
+                    aria-pressed={isActive}
+                    onClick={onClick}
+                    className={
+                        isActive
+                            ? 'bg-accent text-accent-foreground'
+                            : 'text-muted-foreground hover:text-foreground'
+                    }
+                >
+                    <Icon className="size-4" />
+                </Button>
+            </TooltipTrigger>
+            <TooltipContent>{label}</TooltipContent>
+        </Tooltip>
     );
 }
 
@@ -106,45 +137,74 @@ export default function PostEditor({
 
     return (
         <div className="grid gap-2">
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap items-center gap-0.5 rounded-md border border-input bg-muted/30 p-1">
                 <ToolbarButton
                     label="Bold"
+                    icon={Bold}
                     isActive={editor.isActive('bold')}
                     onClick={() => editor.chain().focus().toggleBold().run()}
                 />
                 <ToolbarButton
                     label="Italic"
+                    icon={Italic}
                     isActive={editor.isActive('italic')}
                     onClick={() => editor.chain().focus().toggleItalic().run()}
                 />
                 <ToolbarButton
-                    label="Strike"
+                    label="Underline"
+                    icon={UnderlineIcon}
+                    isActive={editor.isActive('underline')}
+                    onClick={() =>
+                        editor.chain().focus().toggleUnderline().run()
+                    }
+                />
+                <ToolbarButton
+                    label="Strikethrough"
+                    icon={Strikethrough}
                     isActive={editor.isActive('strike')}
                     onClick={() => editor.chain().focus().toggleStrike().run()}
                 />
+
+                <span className="mx-1 h-5 w-px bg-border" />
+
                 <ToolbarButton
-                    label="H2"
+                    label="Heading 2"
+                    icon={Heading2}
                     isActive={editor.isActive('heading', { level: 2 })}
                     onClick={() =>
-                        editor.chain().focus().toggleHeading({ level: 2 }).run()
+                        editor
+                            .chain()
+                            .focus()
+                            .toggleHeading({ level: 2 })
+                            .run()
                     }
                 />
                 <ToolbarButton
-                    label="H3"
+                    label="Heading 3"
+                    icon={Heading3}
                     isActive={editor.isActive('heading', { level: 3 })}
                     onClick={() =>
-                        editor.chain().focus().toggleHeading({ level: 3 }).run()
+                        editor
+                            .chain()
+                            .focus()
+                            .toggleHeading({ level: 3 })
+                            .run()
                     }
                 />
+
+                <span className="mx-1 h-5 w-px bg-border" />
+
                 <ToolbarButton
-                    label="Bullet"
+                    label="Bullet list"
+                    icon={List}
                     isActive={editor.isActive('bulletList')}
                     onClick={() =>
                         editor.chain().focus().toggleBulletList().run()
                     }
                 />
                 <ToolbarButton
-                    label="Numbered"
+                    label="Numbered list"
+                    icon={ListOrdered}
                     isActive={editor.isActive('orderedList')}
                     onClick={() =>
                         editor.chain().focus().toggleOrderedList().run()
@@ -152,31 +212,35 @@ export default function PostEditor({
                 />
                 <ToolbarButton
                     label="Quote"
+                    icon={Quote}
                     isActive={editor.isActive('blockquote')}
                     onClick={() =>
                         editor.chain().focus().toggleBlockquote().run()
                     }
                 />
                 <ToolbarButton
-                    label="Code"
+                    label="Code block"
+                    icon={Code}
                     isActive={editor.isActive('codeBlock')}
                     onClick={() =>
                         editor.chain().focus().toggleCodeBlock().run()
                     }
                 />
+
+                <span className="mx-1 h-5 w-px bg-border" />
+
                 <ToolbarButton
                     label="Link"
+                    icon={LinkIcon}
                     isActive={editor.isActive('link')}
                     onClick={setLink}
                 />
-                <ToolbarButton label="Image" onClick={setImage} />
+                <ToolbarButton label="Image" icon={ImageIcon} onClick={setImage} />
             </div>
 
             <EditorContent editor={editor} />
 
-            {error && (
-                <p className="text-destructive text-sm">{error}</p>
-            )}
+            {error && <p className="text-destructive text-sm">{error}</p>}
         </div>
     );
 }

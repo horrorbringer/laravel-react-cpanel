@@ -4,17 +4,30 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\PostRequest;
 use App\Models\Post;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class PostController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        $posts = Post::latest()->paginate(10);
+        $posts = Post::query()
+            ->where('user_id', $request->user()->id)
+            ->when($request->str('search')->trim(), function ($query, $search) {
+                $query->where(function ($query) use ($search) {
+                    $query->where('title', 'like', "%{$search}%")
+                        ->orWhere('content', 'like', "%{$search}%");
+                });
+            })
+            ->with('user')
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
 
         return Inertia::render('posts/index', [
             'posts' => $posts,
+            'filters' => ['search' => $request->str('search')->trim()],
         ]);
     }
 
@@ -25,7 +38,7 @@ class PostController extends Controller
 
     public function store(PostRequest $request)
     {
-        Post::create($request->validated());
+        $request->user()->posts()->create($request->validated());
 
         return to_route('posts.index');
     }
@@ -33,6 +46,8 @@ class PostController extends Controller
     public function show(Post $post): Response
     {
         abort_unless($post->published, 404);
+
+        $post->load('user');
 
         return Inertia::render('posts/show', [
             'post' => $this->toArticle($post),
@@ -49,7 +64,7 @@ class PostController extends Controller
             'title' => $post->title,
             'content' => $post->content,
             'published' => $post->published,
-            'author' => 'Author',
+            'author' => $post->user?->name ?? 'Author',
             'readingTime' => $minutes.' min read',
             'created_at' => $post->created_at?->toISOString(),
         ];
@@ -57,6 +72,8 @@ class PostController extends Controller
 
     public function edit(Post $post): Response
     {
+        $this->authorize('update', $post);
+
         return Inertia::render('posts/edit', [
             'post' => $post,
         ]);
@@ -64,6 +81,8 @@ class PostController extends Controller
 
     public function update(PostRequest $request, Post $post)
     {
+        $this->authorize('update', $post);
+
         $post->update($request->validated());
 
         return to_route('posts.index');
@@ -71,8 +90,47 @@ class PostController extends Controller
 
     public function destroy(Post $post)
     {
+        $this->authorize('delete', $post);
+
         $post->delete();
 
         return to_route('posts.index');
+    }
+
+    /**
+     * Silently create a draft as the user types. Tolerant validation:
+     * title and content are optional, and the post is never published.
+     */
+    public function autosaveStore(Request $request)
+    {
+        $data = $request->validate([
+            'title' => ['nullable', 'string', 'max:255'],
+            'content' => ['nullable', 'string'],
+        ]);
+
+        $data['published'] = false;
+
+        $post = $request->user()->posts()->create($data);
+
+        return response()->json(['id' => $post->id], 201);
+    }
+
+    /**
+     * Silently update an existing draft as the user types.
+     */
+    public function autosaveUpdate(Request $request, Post $post)
+    {
+        $this->authorize('update', $post);
+
+        $data = $request->validate([
+            'title' => ['nullable', 'string', 'max:255'],
+            'content' => ['nullable', 'string'],
+        ]);
+
+        $data['published'] = false;
+
+        $post->update($data);
+
+        return response()->json(['id' => $post->id]);
     }
 }
