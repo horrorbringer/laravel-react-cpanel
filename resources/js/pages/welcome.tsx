@@ -124,7 +124,7 @@ export default function Welcome() {
                                     >
                                         <Link href={login()}>Log in</Link>
                                     </Button>
-                                    <Button asChild>
+                                    <Button asChild className="hidden sm:inline-flex">
                                         <Link href={register()}>
                                             Get started
                                         </Link>
@@ -136,6 +136,13 @@ export default function Welcome() {
                 </header>
 
                 <main className="mx-auto w-full max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
+                    <div id="search-section" className="mb-8">
+                        <SearchInput
+                            value={search}
+                            onChange={setSearch}
+                            placeholder="Search articles..."
+                        />
+                    </div>
                     {featured ? (
                         <section>
                             <Link

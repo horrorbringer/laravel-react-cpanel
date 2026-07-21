@@ -10,7 +10,7 @@ const navItems: NavItem[] = [
 export default function AppContentLayout({ children }: { children: React.ReactNode }) {
     return (
         <>
-            <div className="pb-16 lg:pb-0">{children}</div>
+            <div className="pb-20 lg:pb-0">{children}</div>
             <AppBottomNav items={navItems} />
         </>
     );

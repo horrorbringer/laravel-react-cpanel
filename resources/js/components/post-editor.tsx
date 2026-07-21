@@ -91,7 +91,7 @@ export default function PostEditor({
         editorProps: {
             attributes: {
                 class:
-                    'prose prose-sm dark:prose-invert max-w-none min-h-48 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50',
+                    'prose dark:prose-invert max-w-none min-h-48 rounded-md border border-input bg-background px-3 py-2 text-base focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50',
             },
         },
         onUpdate: ({ editor }) => {
