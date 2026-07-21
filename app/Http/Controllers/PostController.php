@@ -115,6 +115,17 @@ class PostController extends Controller
         return to_route('posts.index');
     }
 
+    public function bulkDestroy(Request $request)
+    {
+        $ids = $request->input('ids', []);
+
+        Post::whereIn('id', $ids)
+            ->where('user_id', $request->user()->id)
+            ->delete();
+
+        return back();
+    }
+
     /**
      * Silently create a draft as the user types. Tolerant validation:
      * title and content are optional, and the post is never published.

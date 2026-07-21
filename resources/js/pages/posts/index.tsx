@@ -1,11 +1,18 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { Eye, Heart, MessageCircle, Bookmark } from 'lucide-react';
+import { Eye, Heart, MessageCircle, Bookmark, MoreVertical, Pencil, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import PostController from '@/actions/App/Http/Controllers/PostController';
 import Heading from '@/components/heading';
 import { SearchInput } from '@/components/search-input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
     Table,
     TableBody,
@@ -71,6 +78,41 @@ export default function PostsIndex({
         }
     };
 
+    const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+
+    const allIds = posts.data.map((p) => p.id);
+    const allSelected = allIds.length > 0 && allIds.every((id) => selectedIds.has(id));
+
+    const toggleSelectAll = () => {
+        if (allSelected) {
+            setSelectedIds(new Set());
+        } else {
+            setSelectedIds(new Set(allIds));
+        }
+    };
+
+    const toggleSelect = (id: number) => {
+        const next = new Set(selectedIds);
+        if (next.has(id)) {
+            next.delete(id);
+        } else {
+            next.add(id);
+        }
+        setSelectedIds(next);
+    };
+
+    const bulkDelete = () => {
+        const count = selectedIds.size;
+        if (count === 0) return;
+        if (!confirm(`Are you sure you want to delete ${count} selected post${count > 1 ? 's' : ''}?`)) return;
+
+        router.post(PostController.bulkDestroy().url, {
+            ids: Array.from(selectedIds),
+        }, {
+            onSuccess: () => setSelectedIds(new Set()),
+        });
+    };
+
     return (
         <>
             <Head title="Posts" />
@@ -102,9 +144,32 @@ export default function PostsIndex({
                                 : 'No posts yet.'}
                         </p>
                     ) : (
-                        <Table>
+                        <>
+                            {selectedIds.size > 0 && (
+                                <div className="mb-4 flex items-center gap-3 rounded-lg border bg-muted/50 px-4 py-2.5">
+                                    <span className="text-sm text-muted-foreground">
+                                        {selectedIds.size} selected
+                                    </span>
+                                    <Button
+                                        variant="destructive"
+                                        size="sm"
+                                        onClick={bulkDelete}
+                                    >
+                                        <Trash2 className="mr-1.5 size-4" />
+                                        Delete selected
+                                    </Button>
+                                </div>
+                            )}
+                            <Table>
                             <TableHeader>
                                 <TableRow>
+                                    <TableHead className="w-10">
+                                        <Checkbox
+                                            checked={allSelected}
+                                            onCheckedChange={toggleSelectAll}
+                                            aria-label="Select all"
+                                        />
+                                    </TableHead>
                                     <TableHead>Title</TableHead>
                                     <TableHead>Status</TableHead>
                                     <TableHead className="text-center">Views</TableHead>
@@ -119,6 +184,15 @@ export default function PostsIndex({
                             <TableBody>
                                 {posts.data.map((post) => (
                                     <TableRow key={post.id}>
+                                        <TableCell className="w-10">
+                                            <Checkbox
+                                                checked={selectedIds.has(post.id)}
+                                                onCheckedChange={() =>
+                                                    toggleSelect(post.id)
+                                                }
+                                                aria-label={`Select ${post.title}`}
+                                            />
+                                        </TableCell>
                                         <TableCell className="max-w-md">
                                             <div className="font-medium">
                                                 {post.title}
@@ -162,37 +236,46 @@ export default function PostsIndex({
                                                 : '—'}
                                         </TableCell>
                                         <TableCell className="text-right">
-                                            <div className="flex justify-end gap-2">
-                                                <Button
-                                                    asChild
-                                                    variant="outline"
-                                                    size="sm"
-                                                >
-                                                    <Link
-                                                        href={PostController.edit(
-                                                            {
-                                                                post: post.id,
-                                                            },
-                                                        ).url}
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="size-8"
                                                     >
-                                                        Edit
-                                                    </Link>
-                                                </Button>
-                                                <Button
-                                                    variant="destructive"
-                                                    size="sm"
-                                                    onClick={() =>
-                                                        deletePost(post.id)
-                                                    }
-                                                >
-                                                    Delete
-                                                </Button>
-                                            </div>
+                                                        <MoreVertical className="size-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuItem asChild>
+                                                        <Link
+                                                            href={PostController.edit(
+                                                                {
+                                                                    post: post.id,
+                                                                },
+                                                            ).url}
+                                                        >
+                                                            <Pencil className="size-4" />
+                                                            Edit
+                                                        </Link>
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem
+                                                        variant="destructive"
+                                                        onClick={() =>
+                                                            deletePost(post.id)
+                                                        }
+                                                    >
+                                                        <Trash2 className="size-4" />
+                                                        Delete
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
                                         </TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
-                        </Table>
+                            </Table>
+                        </>
                     )}
                 </div>
             </div>

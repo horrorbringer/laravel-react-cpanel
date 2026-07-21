@@ -13,6 +13,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('posts/{post}/edit', [PostController::class, 'edit'])->name('posts.edit');
     Route::put('posts/{post}', [PostController::class, 'update'])->name('posts.update');
     Route::delete('posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
+    Route::post('posts/bulk-delete', [PostController::class, 'bulkDestroy'])->name('posts.bulk-destroy');
     Route::post('posts/autosave', [PostController::class, 'autosaveStore'])->name('posts.autosave');
     Route::put('posts/{post}/autosave', [PostController::class, 'autosaveUpdate'])->name('posts.autosave.update');
 
