@@ -4,7 +4,6 @@ import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { VisitLoader } from '@/components/visit-loader';
 import { initializeTheme } from '@/hooks/use-appearance';
-import AppContentLayout from '@/layouts/app/app-content-layout';
 import AppLayout from '@/layouts/app-layout';
 import AuthLayout from '@/layouts/auth-layout';
 import SettingsLayout from '@/layouts/settings/layout';
@@ -24,7 +23,7 @@ createInertiaApp({
             case name === 'posts/show':
                 return null;
             case name.startsWith('posts/'):
-                return AppContentLayout;
+                return AppLayout;
             case name.startsWith('auth/'):
                 return AuthLayout;
             case name.startsWith('settings/'):

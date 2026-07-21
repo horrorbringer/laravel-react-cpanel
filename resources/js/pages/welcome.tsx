@@ -103,9 +103,6 @@ export default function Welcome() {
                             </Button>
                             {auth.user ? (
                                 <>
-                                    <Button variant="ghost" asChild>
-                                        <Link href={postsIndex()}>Posts</Link>
-                                    </Button>
                                     <Button asChild>
                                         <Link href={createPost()}>
                                             <PenLine className="size-4" />
