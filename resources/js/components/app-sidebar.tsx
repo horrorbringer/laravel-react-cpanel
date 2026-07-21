@@ -1,5 +1,5 @@
-import { Link } from '@inertiajs/react';
-import { Home, PenLine, StickyNoteIcon } from 'lucide-react';
+import { Link, usePage } from '@inertiajs/react';
+import { Home, PenLine, Shield, StickyNoteIcon } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -14,26 +14,20 @@ import {
 } from '@/components/ui/sidebar';
 import { create as createPost, index as postsIndex } from '@/routes/posts';
 import { home } from '@/routes';
-import type { NavItem } from '@/types';
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Home',
-        href: home(),
-        icon: Home,
-    },
-    {
-        title: 'My Posts',
-        href: postsIndex(),
-        icon: StickyNoteIcon,
-    },
-    {
-        title: 'New Post',
-        href: createPost(),
-        icon: PenLine,
-    },
-];
+import type { Auth, NavItem } from '@/types';
 
 export function AppSidebar() {
+    const { auth = {} as Auth } = usePage<{ auth: Auth }>().props;
+
+    const navItems: NavItem[] = [
+        { title: 'Home', href: home(), icon: Home },
+        { title: 'My Posts', href: postsIndex(), icon: StickyNoteIcon },
+        { title: 'New Post', href: createPost(), icon: PenLine },
+        ...(auth?.user?.is_admin
+            ? [{ title: 'Admin', href: '/admin/posts', icon: Shield }]
+            : []),
+    ];
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
@@ -49,11 +43,10 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={mainNavItems} />
+                <NavMain items={navItems} />
             </SidebarContent>
 
             <SidebarFooter>
-                {/* <NavFooter items={footerNavItems} className="mt-auto" /> */}
                 <NavUser />
             </SidebarFooter>
         </Sidebar>
