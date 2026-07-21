@@ -77,7 +77,7 @@ export default function Welcome() {
         <>
             <Head title="Knowledge" />
 
-            <div className="flex min-h-screen flex-col bg-background text-foreground">
+            <div className="flex min-h-screen flex-col bg-background text-foreground pb-16 lg:pb-0">
                 <header className="sticky top-0 z-10 border-b border-border/70 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
                     <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
                         <div className="flex min-w-0 items-center gap-5">
