@@ -23,14 +23,14 @@ export function AppSidebar() {
     const { auth = {} as Auth } = usePage<{ auth: Auth }>().props;
 
     const navItems: NavItem[] = [
-        { title: 'Home', href: home(), icon: Home },
-        { title: 'My Posts', href: postsIndex(), icon: StickyNoteIcon },
-        { title: 'New Post', href: createPost(), icon: PenLine },
+        { title: 'Home', href: home().url, icon: Home },
+        { title: 'My Posts', href: postsIndex().url, icon: StickyNoteIcon },
+        { title: 'New Post', href: createPost().url, icon: PenLine },
         ...(auth?.user?.is_admin
             ? [
-                  { title: 'Admin Dashboard', href: adminDashboard(), icon: LayoutDashboard },
-                  { title: 'Admin Users', href: adminUsersIndex(), icon: User },
-                  { title: 'Admin Posts', href: adminPostsIndex(), icon: Shield },
+                  { title: 'Admin Dashboard', href: adminDashboard().url, icon: LayoutDashboard },
+                  { title: 'Admin Users', href: adminUsersIndex().url, icon: User },
+                  { title: 'Admin Posts', href: adminPostsIndex().url, icon: Shield },
               ]
             : []),
     ];
@@ -41,7 +41,7 @@ export function AppSidebar() {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href={postsIndex()} prefetch>
+                            <Link href={postsIndex().url} prefetch>
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>
