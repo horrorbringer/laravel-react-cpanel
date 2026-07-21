@@ -52,7 +52,29 @@ export default function Welcome() {
     const { resolvedAppearance, updateAppearance } = useAppearance();
 
     const [search, setSearch] = useState(filters.search ?? '');
+    const [headerVisible, setHeaderVisible] = useState(true);
     const debounce = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+    const lastScroll = useRef(0);
+
+    useEffect(() => {
+        const onScroll = () => {
+            const currentScroll = window.scrollY;
+            const diff = currentScroll - lastScroll.current;
+
+            if (currentScroll <= 0) {
+                setHeaderVisible(true);
+            } else if (diff > 10) {
+                setHeaderVisible(false);
+            } else if (diff < -10) {
+                setHeaderVisible(true);
+            }
+
+            lastScroll.current = currentScroll;
+        };
+
+        window.addEventListener('scroll', onScroll, { passive: true });
+        return () => window.removeEventListener('scroll', onScroll);
+    }, []);
 
     useEffect(() => {
         debounce.current = setTimeout(() => {
@@ -78,7 +100,7 @@ export default function Welcome() {
             <Head title="Knowledge" />
 
             <div className="flex min-h-screen flex-col bg-background text-foreground pb-16 lg:pb-0">
-                <header className="sticky top-0 z-10 border-b border-border/70 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                <header className={`sticky top-0 z-10 border-b border-border/70 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 transition-transform duration-300 ${headerVisible ? 'translate-y-0' : '-translate-y-full'}`}>
                     <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
                         <div className="flex min-w-0 items-center gap-5">
                             <AppLogo />
