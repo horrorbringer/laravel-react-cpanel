@@ -16,11 +16,11 @@ const defaultNavItems: NavItem[] = [
 
 export function AppBottomNav({ items = defaultNavItems }: { items?: NavItem[] }) {
     const { isCurrentOrParentUrl } = useCurrentUrl();
-    const { auth } = usePage<{ auth: Auth }>().props;
+    const { auth } = usePage<{ auth?: Auth }>().props;
 
     return (
         <div className="fixed inset-x-0 bottom-0 z-50 lg:hidden">
-            {auth.user && (
+            {auth?.user && (
                 <Link
                     href={createPost().url}
                     className="absolute -top-6 right-6 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-sidebar-primary text-sidebar-primary-foreground shadow-lg shadow-sidebar-primary/30 transition-transform active:scale-90"
