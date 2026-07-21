@@ -1,10 +1,14 @@
-import { Head, Link } from '@inertiajs/react';
-import { Moon, Sun } from 'lucide-react';
+import { Head, Link, usePage } from '@inertiajs/react';
+import { Eye, Moon, Sun } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
+import { BookmarkButton } from '@/components/bookmark-button';
 import { Button } from '@/components/ui/button';
+import { CommentsSection } from '@/components/comments-section';
+import { LikeButton } from '@/components/like-button';
 import { Separator } from '@/components/ui/separator';
 import { useAppearance } from '@/hooks/use-appearance';
 import { home } from '@/routes';
+import type { Auth } from '@/types';
 
 type Post = {
     id: number;
@@ -16,6 +20,21 @@ type Post = {
     created_at: string;
 };
 
+type Engagement = {
+    views: number;
+    likes_count: number;
+    is_liked: boolean;
+    is_bookmarked: boolean;
+};
+
+type Comment = {
+    id: number;
+    body: string;
+    author: string;
+    created_at: string;
+    is_owner: boolean;
+};
+
 function initials(name: string): string {
     return name
         .split(' ')
@@ -25,8 +44,17 @@ function initials(name: string): string {
         .toUpperCase();
 }
 
-export default function PostShow({ post }: { post: Post }) {
+export default function PostShow({
+    post,
+    engagement,
+    comments,
+}: {
+    post: Post;
+    engagement: Engagement;
+    comments: Comment[];
+}) {
     const { resolvedAppearance, updateAppearance } = useAppearance();
+    const { auth } = usePage<{ auth: Auth }>().props;
 
     const formattedDate = post.created_at
         ? new Date(post.created_at).toLocaleDateString(undefined, {
@@ -94,6 +122,13 @@ export default function PostShow({ post }: { post: Post }) {
                             </div>
                         </div>
 
+                        <div className="mt-4 flex items-center gap-4 text-sm text-muted-foreground">
+                            <span className="flex items-center gap-1">
+                                <Eye className="h-4 w-4" />
+                                {engagement.views}
+                            </span>
+                        </div>
+
                         <Separator className="my-8" />
 
                         <div
@@ -101,6 +136,27 @@ export default function PostShow({ post }: { post: Post }) {
                             dangerouslySetInnerHTML={{ __html: post.content }}
                         />
                     </article>
+
+                    <Separator className="my-8" />
+
+                    <div className="flex items-center gap-2">
+                        <LikeButton
+                            postId={post.id}
+                            isLiked={engagement.is_liked}
+                            count={engagement.likes_count}
+                        />
+
+                        {auth?.user && (
+                            <BookmarkButton
+                                postId={post.id}
+                                isBookmarked={engagement.is_bookmarked}
+                            />
+                        )}
+                    </div>
+
+                    <Separator className="my-8" />
+
+                    <CommentsSection postId={post.id} comments={comments} />
                 </main>
 
                 <footer className="border-t border-border/70 px-4 py-8 text-center text-sm text-muted-foreground sm:px-6">

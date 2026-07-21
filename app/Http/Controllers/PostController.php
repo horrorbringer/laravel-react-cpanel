@@ -21,6 +21,7 @@ class PostController extends Controller
                 });
             })
             ->with('user')
+            ->withCount(['likes', 'comments', 'bookmarks'])
             ->latest()
             ->paginate(10)
             ->withQueryString();
@@ -43,14 +44,31 @@ class PostController extends Controller
         return to_route('posts.index');
     }
 
-    public function show(Post $post): Response
+    public function show(Post $post, Request $request): Response
     {
         abort_unless($post->published, 404);
 
-        $post->load('user');
+        $post->load('user', 'comments.user', 'likes');
+
+        $post->incrementViews();
+
+        $user = $request->user();
 
         return Inertia::render('posts/show', [
             'post' => $this->toArticle($post),
+            'engagement' => [
+                'views' => $post->views,
+                'likes_count' => $post->likes->count(),
+                'is_liked' => $user ? $post->isLikedBy($user) : false,
+                'is_bookmarked' => $user ? $post->isBookmarkedBy($user) : false,
+            ],
+            'comments' => $post->comments->map(fn ($comment) => [
+                'id' => $comment->id,
+                'body' => $comment->body,
+                'author' => $comment->user?->name ?? 'Anonymous',
+                'created_at' => $comment->created_at?->diffForHumans(),
+                'is_owner' => $user && $comment->user_id === $user->id,
+            ]),
         ]);
     }
 

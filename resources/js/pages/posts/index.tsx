@@ -1,4 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
+import { Eye, Heart, MessageCircle, Bookmark } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import PostController from '@/actions/App/Http/Controllers/PostController';
 import Heading from '@/components/heading';
@@ -20,6 +21,9 @@ type Post = {
     title: string;
     content: string;
     published: boolean;
+    views: number;
+    likes_count: number;
+    comments_count: number;
     created_at: string;
 };
 
@@ -103,6 +107,9 @@ export default function PostsIndex({
                                 <TableRow>
                                     <TableHead>Title</TableHead>
                                     <TableHead>Status</TableHead>
+                                    <TableHead className="text-center">Views</TableHead>
+                                    <TableHead className="text-center">Likes</TableHead>
+                                    <TableHead className="text-center">Comments</TableHead>
                                     <TableHead>Created</TableHead>
                                     <TableHead className="text-right">
                                         Actions
@@ -128,6 +135,24 @@ export default function PostsIndex({
                                                     Draft
                                                 </Badge>
                                             )}
+                                        </TableCell>
+                                        <TableCell className="text-center text-muted-foreground">
+                                            <span className="inline-flex items-center gap-1 text-xs">
+                                                <Eye className="size-3.5" />
+                                                {post.views ?? 0}
+                                            </span>
+                                        </TableCell>
+                                        <TableCell className="text-center text-muted-foreground">
+                                            <span className="inline-flex items-center gap-1 text-xs">
+                                                <Heart className="size-3.5" />
+                                                {post.likes_count ?? 0}
+                                            </span>
+                                        </TableCell>
+                                        <TableCell className="text-center text-muted-foreground">
+                                            <span className="inline-flex items-center gap-1 text-xs">
+                                                <MessageCircle className="size-3.5" />
+                                                {post.comments_count ?? 0}
+                                            </span>
                                         </TableCell>
                                         <TableCell className="text-muted-foreground">
                                             {post.created_at
