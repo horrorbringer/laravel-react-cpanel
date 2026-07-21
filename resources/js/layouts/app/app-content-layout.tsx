@@ -1,5 +1,5 @@
-import { AppBottomNav } from '@/components/app-bottom-nav';
 import { StickyNoteIcon } from 'lucide-react';
+import { AppBottomNav } from '@/components/app-bottom-nav';
 import { index as postsIndex } from '@/routes/posts';
 import type { NavItem } from '@/types';
 

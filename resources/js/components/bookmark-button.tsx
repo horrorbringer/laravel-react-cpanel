@@ -1,8 +1,8 @@
 import { router } from '@inertiajs/react';
 import { Bookmark } from 'lucide-react';
-import { bookmark } from '@/routes/posts';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { bookmark } from '@/routes/posts';
 
 type Props = {
     postId: number;

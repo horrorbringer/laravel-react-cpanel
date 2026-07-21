@@ -93,19 +93,26 @@ export default function PostsIndex({
 
     const toggleSelect = (id: number) => {
         const next = new Set(selectedIds);
+
         if (next.has(id)) {
             next.delete(id);
         } else {
             next.add(id);
         }
+
         setSelectedIds(next);
     };
 
     const bulkAction = (action: string) => {
         const ids = Array.from(selectedIds);
-        if (ids.length === 0) return;
 
-        if (action === 'delete' && !confirm(`Delete ${ids.length} selected post${ids.length > 1 ? 's' : ''}?`)) return;
+        if (ids.length === 0) {
+return;
+}
+
+        if (action === 'delete' && !confirm(`Delete ${ids.length} selected post${ids.length > 1 ? 's' : ''}?`)) {
+return;
+}
 
         const routes: Record<string, ReturnType<typeof PostController.bulkDestroy>> = {
             publish: PostController.bulkPublish(),

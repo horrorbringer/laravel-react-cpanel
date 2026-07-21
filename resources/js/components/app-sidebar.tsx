@@ -12,8 +12,11 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { create as createPost, index as postsIndex } from '@/routes/posts';
 import { home } from '@/routes';
+import { dashboard as adminDashboard } from '@/routes/admin';
+import { index as adminPostsIndex } from '@/routes/admin/posts';
+import { index as adminUsersIndex } from '@/routes/admin/users';
+import { create as createPost, index as postsIndex } from '@/routes/posts';
 import type { Auth, NavItem } from '@/types';
 
 export function AppSidebar() {
@@ -25,15 +28,9 @@ export function AppSidebar() {
         { title: 'New Post', href: createPost(), icon: PenLine },
         ...(auth?.user?.is_admin
             ? [
-                  {
-                      title: 'Admin',
-                      icon: Shield,
-                      items: [
-                          { title: 'Dashboard', href: '/admin' },
-                          { title: 'Users', href: '/admin/users' },
-                          { title: 'Posts', href: '/admin/posts' },
-                      ],
-                  },
+                  { title: 'Admin Dashboard', href: adminDashboard(), icon: LayoutDashboard },
+                  { title: 'Admin Users', href: adminUsersIndex(), icon: User },
+                  { title: 'Admin Posts', href: adminPostsIndex(), icon: Shield },
               ]
             : []),
     ];

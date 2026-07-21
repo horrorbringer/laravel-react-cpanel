@@ -49,7 +49,9 @@ export default function AdminPostsIndex({
 
     useEffect(() => {
         debounce.current = setTimeout(() => {
-            if ((filters.search ?? '') === search) return;
+            if ((filters.search ?? '') === search) {
+return;
+}
 
             router.get(
                 PostController.index().url,
@@ -81,8 +83,14 @@ export default function AdminPostsIndex({
 
     const bulkDelete = () => {
         const ids = Array.from(selectedIds);
-        if (ids.length === 0) return;
-        if (!confirm(`Delete ${ids.length} post${ids.length > 1 ? 's' : ''}?`)) return;
+
+        if (ids.length === 0) {
+return;
+}
+
+        if (!confirm(`Delete ${ids.length} post${ids.length > 1 ? 's' : ''}?`)) {
+return;
+}
 
         router.post(PostController.bulkDestroy().url, { ids }, {
             onSuccess: () => setSelectedIds(new Set()),

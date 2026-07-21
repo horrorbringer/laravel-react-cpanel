@@ -1,9 +1,9 @@
 import { Link, usePage } from '@inertiajs/react';
 import { PenLine, StickyNoteIcon } from 'lucide-react';
-import { useCurrentUrl } from '@/hooks/use-current-url';
 import { create as createPost } from '@/actions/App/Http/Controllers/PostController';
-import { index as postsIndex } from '@/routes/posts';
+import { useCurrentUrl } from '@/hooks/use-current-url';
 import { cn } from '@/lib/utils';
+import { index as postsIndex } from '@/routes/posts';
 import type { Auth, NavItem } from '@/types';
 
 const defaultNavItems: NavItem[] = [

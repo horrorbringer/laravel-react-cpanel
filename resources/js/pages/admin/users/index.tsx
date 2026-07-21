@@ -50,7 +50,9 @@ export default function AdminUsersIndex({
 
     useEffect(() => {
         debounce.current = setTimeout(() => {
-            if ((filters.search ?? '') === search) return;
+            if ((filters.search ?? '') === search) {
+return;
+}
 
             router.get(
                 UserController.index().url,

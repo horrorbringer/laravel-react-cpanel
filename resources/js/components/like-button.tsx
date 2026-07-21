@@ -1,8 +1,8 @@
 import { router } from '@inertiajs/react';
 import { Heart } from 'lucide-react';
-import { like } from '@/routes/posts';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { like } from '@/routes/posts';
 
 type Props = {
     postId: number;

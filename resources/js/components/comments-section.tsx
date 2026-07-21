@@ -1,9 +1,9 @@
 import { router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
-import { destroy } from '@/routes/comments';
-import { store } from '@/routes/posts/comments';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { destroy } from '@/routes/comments';
+import { store } from '@/routes/posts/comments';
 
 type Comment = {
     id: number;
@@ -25,7 +25,9 @@ export function CommentsSection({ postId, comments }: Props) {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!body.trim()) return;
+        if (!body.trim()) {
+return;
+}
 
         router.post(
             store({ post: postId }).url,
@@ -35,7 +37,9 @@ export function CommentsSection({ postId, comments }: Props) {
     };
 
     const handleDelete = (commentId: number) => {
-        if (!confirm('Delete this comment?')) return;
+        if (!confirm('Delete this comment?')) {
+return;
+}
 
         router.delete(destroy({ comment: commentId }).url, {
             preserveScroll: true,
