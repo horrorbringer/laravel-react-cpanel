@@ -1,5 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { Eye, Heart, MessageCircle, Bookmark, MoreVertical, Pencil, Trash2 } from 'lucide-react';
+import { CheckCircle, Eye, Heart, MessageCircle, Bookmark, MoreVertical, Pencil, Trash2, XCircle } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import PostController from '@/actions/App/Http/Controllers/PostController';
 import Heading from '@/components/heading';
@@ -101,14 +101,19 @@ export default function PostsIndex({
         setSelectedIds(next);
     };
 
-    const bulkDelete = () => {
-        const count = selectedIds.size;
-        if (count === 0) return;
-        if (!confirm(`Are you sure you want to delete ${count} selected post${count > 1 ? 's' : ''}?`)) return;
+    const bulkAction = (action: string) => {
+        const ids = Array.from(selectedIds);
+        if (ids.length === 0) return;
 
-        router.post(PostController.bulkDestroy().url, {
-            ids: Array.from(selectedIds),
-        }, {
+        if (action === 'delete' && !confirm(`Delete ${ids.length} selected post${ids.length > 1 ? 's' : ''}?`)) return;
+
+        const routes: Record<string, ReturnType<typeof PostController.bulkDestroy>> = {
+            publish: PostController.bulkPublish(),
+            unpublish: PostController.bulkUnpublish(),
+            delete: PostController.bulkDestroy(),
+        };
+
+        router.post(routes[action].url, { ids }, {
             onSuccess: () => setSelectedIds(new Set()),
         });
     };
@@ -146,17 +151,33 @@ export default function PostsIndex({
                     ) : (
                         <>
                             {selectedIds.size > 0 && (
-                                <div className="mb-4 flex items-center gap-3 rounded-lg border bg-muted/50 px-4 py-2.5">
+                                <div className="mb-4 flex flex-wrap items-center gap-2 rounded-lg border bg-muted/50 px-4 py-2.5">
                                     <span className="text-sm text-muted-foreground">
                                         {selectedIds.size} selected
                                     </span>
                                     <Button
+                                        variant="default"
+                                        size="sm"
+                                        onClick={() => bulkAction('publish')}
+                                    >
+                                        <CheckCircle className="mr-1.5 size-4" />
+                                        Publish
+                                    </Button>
+                                    <Button
+                                        variant="secondary"
+                                        size="sm"
+                                        onClick={() => bulkAction('unpublish')}
+                                    >
+                                        <XCircle className="mr-1.5 size-4" />
+                                        Draft
+                                    </Button>
+                                    <Button
                                         variant="destructive"
                                         size="sm"
-                                        onClick={bulkDelete}
+                                        onClick={() => bulkAction('delete')}
                                     >
                                         <Trash2 className="mr-1.5 size-4" />
-                                        Delete selected
+                                        Delete
                                     </Button>
                                 </div>
                             )}

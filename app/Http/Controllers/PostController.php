@@ -126,6 +126,28 @@ class PostController extends Controller
         return back();
     }
 
+    public function bulkPublish(Request $request)
+    {
+        $ids = $request->input('ids', []);
+
+        Post::whereIn('id', $ids)
+            ->where('user_id', $request->user()->id)
+            ->update(['published' => true]);
+
+        return back();
+    }
+
+    public function bulkUnpublish(Request $request)
+    {
+        $ids = $request->input('ids', []);
+
+        Post::whereIn('id', $ids)
+            ->where('user_id', $request->user()->id)
+            ->update(['published' => false]);
+
+        return back();
+    }
+
     /**
      * Silently create a draft as the user types. Tolerant validation:
      * title and content are optional, and the post is never published.
