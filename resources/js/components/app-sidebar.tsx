@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { PenLine, StickyNoteIcon } from 'lucide-react';
+import { Home, PenLine, StickyNoteIcon } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -13,8 +13,14 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { create as createPost, index as postsIndex } from '@/routes/posts';
+import { home } from '@/routes';
 import type { NavItem } from '@/types';
 const mainNavItems: NavItem[] = [
+    {
+        title: 'Home',
+        href: home(),
+        icon: Home,
+    },
     {
         title: 'My Posts',
         href: postsIndex(),
