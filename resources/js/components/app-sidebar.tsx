@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { Home, PenLine, Shield, StickyNoteIcon } from 'lucide-react';
+import { Home, LayoutDashboard, PenLine, Shield, StickyNoteIcon, User } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -24,7 +24,17 @@ export function AppSidebar() {
         { title: 'My Posts', href: postsIndex(), icon: StickyNoteIcon },
         { title: 'New Post', href: createPost(), icon: PenLine },
         ...(auth?.user?.is_admin
-            ? [{ title: 'Admin', href: '/admin/posts', icon: Shield }]
+            ? [
+                  {
+                      title: 'Admin',
+                      icon: Shield,
+                      items: [
+                          { title: 'Dashboard', href: '/admin' },
+                          { title: 'Users', href: '/admin/users' },
+                          { title: 'Posts', href: '/admin/posts' },
+                      ],
+                  },
+              ]
             : []),
     ];
 
