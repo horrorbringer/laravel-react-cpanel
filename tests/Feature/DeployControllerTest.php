@@ -1,8 +1,5 @@
 <?php
 
-use App\Http\Controllers\DeployController;
-use Illuminate\Support\Facades\Artisan;
-
 beforeEach(function () {
     config(['app.deploy_token' => 'secret-token']);
 });
