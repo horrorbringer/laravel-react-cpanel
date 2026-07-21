@@ -1,13 +1,12 @@
-import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { Moon, PenLine, Sun } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import {
     create as createPost,
     index as postsIndex,
 } from '@/actions/App/Http/Controllers/PostController';
 import { show as showPost } from '@/actions/App/Http/Controllers/PostController';
 import AppLogo from '@/components/app-logo';
-import { SearchInput } from '@/components/search-input';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useAppearance } from '@/hooks/use-appearance';
@@ -25,10 +24,6 @@ type Article = {
     tag: string;
 };
 
-type Filters = {
-    search?: string;
-};
-
 function ArticleMeta({ article }: { article: Article }) {
     return (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -44,16 +39,13 @@ function ArticleMeta({ article }: { article: Article }) {
 }
 
 export default function Welcome() {
-    const { auth, articles, filters } = usePage<{
+    const { auth, articles } = usePage<{
         auth: Auth;
         articles: Article[];
-        filters: Filters;
     }>().props;
     const { resolvedAppearance, updateAppearance } = useAppearance();
 
-    const [search, setSearch] = useState(filters.search ?? '');
     const [headerVisible, setHeaderVisible] = useState(true);
-    const debounce = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
     const lastScroll = useRef(0);
 
     useEffect(() => {
@@ -75,22 +67,6 @@ export default function Welcome() {
         window.addEventListener('scroll', onScroll, { passive: true });
         return () => window.removeEventListener('scroll', onScroll);
     }, []);
-
-    useEffect(() => {
-        debounce.current = setTimeout(() => {
-            if ((filters.search ?? '') === search) {
-                return;
-            }
-
-            router.get(
-                home().url,
-                { search: search || undefined },
-                { preserveState: true, replace: true },
-            );
-        }, 300);
-
-        return () => clearTimeout(debounce.current);
-    }, [search]);
 
     const featured: Article | undefined = articles[0];
     const rest: Article[] = articles.slice(1);
@@ -158,13 +134,6 @@ export default function Welcome() {
                 </header>
 
                 <main className="mx-auto w-full max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
-                    <div id="search-section" className="mb-8">
-                        <SearchInput
-                            value={search}
-                            onChange={setSearch}
-                            placeholder="Search articles..."
-                        />
-                    </div>
                     {featured ? (
                         <section>
                             <Link
