@@ -2,6 +2,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import { Plus, Shield, ShieldOff, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import UserController from '@/actions/App/Http/Controllers/Admin/UserController';
+import { ConfirmDialog } from '@/components/confirm-dialog';
 import Heading from '@/components/heading';
 import { SearchInput } from '@/components/search-input';
 import { Badge } from '@/components/ui/badge';
@@ -82,11 +83,7 @@ return;
         setSelectedIds(next);
     };
 
-    const deleteUser = (user: User) => {
-        if (confirm(`Delete user "${user.name}"? This will also delete their posts and comments.`)) {
-            router.delete(UserController.destroy({ user: user.id }).url);
-        }
-    };
+    const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
 
     return (
         <>
@@ -200,7 +197,7 @@ return;
                                                     <Button
                                                         variant="destructive"
                                                         size="sm"
-                                                        onClick={() => deleteUser(user)}
+                                                        onClick={() => setDeleteTarget(user)}
                                                     >
                                                         <Trash2 className="size-4" />
                                                     </Button>
@@ -214,6 +211,20 @@ return;
                     )}
                 </div>
             </div>
+
+            <ConfirmDialog
+                open={deleteTarget !== null}
+                onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}
+                title={`Delete user "${deleteTarget?.name ?? ''}"`}
+                description="This will also delete their posts and comments. This action cannot be undone."
+                confirmLabel="Delete"
+                destructive
+                onConfirm={() => {
+                    if (deleteTarget !== null) {
+                        router.delete(UserController.destroy({ user: deleteTarget.id }).url);
+                    }
+                }}
+            />
         </>
     );
 }

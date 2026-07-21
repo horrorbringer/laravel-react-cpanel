@@ -37,10 +37,17 @@ export default function PostForm({
 
     const debounce = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
     const firstRun = useRef(true);
+    const draftIdRef = useRef(draftId);
+    const lastSaved = useRef({ title: '', content: '' });
+
+    useEffect(() => {
+        draftIdRef.current = draftId;
+    }, [draftId]);
 
     useEffect(() => {
         if (firstRun.current) {
             firstRun.current = false;
+            lastSaved.current = { title, content };
 
             return;
         }
@@ -48,6 +55,10 @@ export default function PostForm({
         const hasContent = title.trim() !== '' || content.trim() !== '';
 
         if (!hasContent) {
+            return;
+        }
+
+        if (title === lastSaved.current.title && content === lastSaved.current.content) {
             return;
         }
 
@@ -60,16 +71,24 @@ export default function PostForm({
                 content: content.trim() === '' ? null : content,
             };
 
-            if (draftId) {
+            const onSaved = (id?: number) => {
+                if (typeof id === 'number') {
+                    setDraftId(id);
+                    draftIdRef.current = id;
+                }
+                lastSaved.current = { title, content };
+                setStatus('saved');
+            };
+
+            if (draftIdRef.current) {
                 router.put(
-                    PostController.autosaveUpdate({ post: draftId })
-                        .url,
+                    PostController.autosaveUpdate({ post: draftIdRef.current }).url,
                     payload,
                     {
                         preserveScroll: true,
                         preserveState: true,
                         errorBag: 'autosave',
-                        onSuccess: () => setStatus('saved'),
+                        onSuccess: () => onSaved(),
                         onError: () => setStatus('error'),
                     },
                 );
@@ -86,13 +105,7 @@ export default function PostForm({
                     errorBag: 'autosave',
                     onSuccess: (response: unknown) => {
                         const data = (response as { data?: { id?: number }; id?: number });
-                        const id = data.data?.id ?? data.id;
-
-                        if (typeof id === 'number') {
-                            setDraftId(id);
-                        }
-
-                        setStatus('saved');
+                        onSaved(data.data?.id ?? data.id);
                     },
                     onError: () => setStatus('error'),
                 },
@@ -100,7 +113,7 @@ export default function PostForm({
         }, 1000);
 
         return () => clearTimeout(debounce.current);
-    }, [title, content, draftId]);
+    }, [title, content]);
 
     const statusLabel: Record<SaveStatus, string> = {
         idle: '',

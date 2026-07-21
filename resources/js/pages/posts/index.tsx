@@ -1,26 +1,20 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { CheckCircle, Eye, Heart, MessageCircle, Bookmark, MoreVertical, Pencil, Trash2, XCircle } from 'lucide-react';
+import { CheckCircle, Eye, Heart, MessageCircle, MoreVertical, Pencil, Trash2, XCircle } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import PostController from '@/actions/App/Http/Controllers/PostController';
+import { ConfirmDialog } from '@/components/confirm-dialog';
 import Heading from '@/components/heading';
 import { SearchInput } from '@/components/search-input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
+import { Table } from '@/components/motion/table';
+import type { TableColumn } from '@/components/motion/table';
 import type { BreadcrumbItem } from '@/types';
 
 type Post = {
@@ -72,47 +66,25 @@ export default function PostsIndex({
         return () => clearTimeout(debounce.current);
     }, [search]);
 
-    const deletePost = (id: number) => {
-        if (confirm('Are you sure you want to delete this post?')) {
-            router.delete(PostController.destroy({ post: id }).url);
-        }
-    };
+    const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
+    const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
 
-    const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+    const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
-    const allIds = posts.data.map((p) => p.id);
-    const allSelected = allIds.length > 0 && allIds.every((id) => selectedIds.has(id));
-
-    const toggleSelectAll = () => {
-        if (allSelected) {
-            setSelectedIds(new Set());
-        } else {
-            setSelectedIds(new Set(allIds));
-        }
-    };
-
-    const toggleSelect = (id: number) => {
-        const next = new Set(selectedIds);
-
-        if (next.has(id)) {
-            next.delete(id);
-        } else {
-            next.add(id);
-        }
-
-        setSelectedIds(next);
-    };
+    const allIds = posts.data.map((p) => String(p.id));
+    const allSelected = allIds.length > 0 && allIds.every((id) => selectedIds.includes(id));
 
     const bulkAction = (action: string) => {
-        const ids = Array.from(selectedIds);
+        const ids = selectedIds.map(Number);
 
         if (ids.length === 0) {
 return;
 }
 
-        if (action === 'delete' && !confirm(`Delete ${ids.length} selected post${ids.length > 1 ? 's' : ''}?`)) {
-return;
-}
+        if (action === 'delete') {
+            setBulkDeleteOpen(true);
+            return;
+        }
 
         const routes: Record<string, ReturnType<typeof PostController.bulkDestroy>> = {
             publish: PostController.bulkPublish(),
@@ -121,9 +93,117 @@ return;
         };
 
         router.post(routes[action].url, { ids }, {
-            onSuccess: () => setSelectedIds(new Set()),
+            onSuccess: () => setSelectedIds([]),
         });
     };
+
+    const columns: TableColumn<Post>[] = [
+        {
+            key: 'title',
+            header: 'Title',
+            cell: (post) => (
+                <div className="max-w-md">
+                    <div className="font-medium">{post.title}</div>
+                    <div className="line-clamp-1 text-sm text-muted-foreground">
+                        {stripHtml(post.content)}
+                    </div>
+                </div>
+            ),
+        },
+        {
+            key: 'status',
+            header: 'Status',
+            width: '100px',
+            cell: (post) =>
+                post.published ? (
+                    <Badge>Published</Badge>
+                ) : (
+                    <Badge variant="secondary">Draft</Badge>
+                ),
+        },
+        {
+            key: 'views',
+            header: 'Views',
+            align: 'center',
+            width: '80px',
+            cell: (post) => (
+                <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                    <Eye className="size-3.5" />
+                    {post.views ?? 0}
+                </span>
+            ),
+        },
+        {
+            key: 'likes_count',
+            header: 'Likes',
+            align: 'center',
+            width: '80px',
+            cell: (post) => (
+                <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                    <Heart className="size-3.5" />
+                    {post.likes_count ?? 0}
+                </span>
+            ),
+        },
+        {
+            key: 'comments_count',
+            header: 'Comments',
+            align: 'center',
+            width: '100px',
+            cell: (post) => (
+                <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                    <MessageCircle className="size-3.5" />
+                    {post.comments_count ?? 0}
+                </span>
+            ),
+        },
+        {
+            key: 'created_at',
+            header: 'Created',
+            width: '100px',
+            cell: (post) => (
+                <span className="text-muted-foreground">
+                    {post.created_at
+                        ? new Date(post.created_at).toLocaleDateString()
+                        : '—'}
+                </span>
+            ),
+        },
+        {
+            key: 'actions',
+            header: 'Actions',
+            align: 'right',
+            width: '80px',
+            cell: (post) => (
+                <div className="flex justify-end">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="size-8">
+                                <MoreVertical className="size-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem asChild>
+                                <Link
+                                    href={PostController.edit({ post: post.id }).url}
+                                >
+                                    <Pencil className="size-4" />
+                                    Edit
+                                </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                                variant="destructive"
+                                onClick={() => setDeleteTarget(post.id)}
+                            >
+                                <Trash2 className="size-4" />
+                                Delete
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+            ),
+        },
+    ];
 
     return (
         <>
@@ -157,10 +237,10 @@ return;
                         </p>
                     ) : (
                         <>
-                            {selectedIds.size > 0 && (
+                            {selectedIds.length > 0 && (
                                 <div className="mb-4 flex flex-wrap items-center gap-2 rounded-lg border bg-muted/50 px-4 py-2.5">
                                     <span className="text-sm text-muted-foreground">
-                                        {selectedIds.size} selected
+                                        {selectedIds.length} selected
                                     </span>
                                     <Button
                                         variant="default"
@@ -188,125 +268,49 @@ return;
                                     </Button>
                                 </div>
                             )}
-                            <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead className="w-10">
-                                        <Checkbox
-                                            checked={allSelected}
-                                            onCheckedChange={toggleSelectAll}
-                                            aria-label="Select all"
-                                        />
-                                    </TableHead>
-                                    <TableHead>Title</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead className="text-center">Views</TableHead>
-                                    <TableHead className="text-center">Likes</TableHead>
-                                    <TableHead className="text-center">Comments</TableHead>
-                                    <TableHead>Created</TableHead>
-                                    <TableHead className="text-right">
-                                        Actions
-                                    </TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {posts.data.map((post) => (
-                                    <TableRow key={post.id}>
-                                        <TableCell className="w-10">
-                                            <Checkbox
-                                                checked={selectedIds.has(post.id)}
-                                                onCheckedChange={() =>
-                                                    toggleSelect(post.id)
-                                                }
-                                                aria-label={`Select ${post.title}`}
-                                            />
-                                        </TableCell>
-                                        <TableCell className="max-w-md">
-                                            <div className="font-medium">
-                                                {post.title}
-                                            </div>
-                                            <div className="line-clamp-1 text-sm text-muted-foreground">
-                                                {stripHtml(post.content)}
-                                            </div>
-                                        </TableCell>
-                                        <TableCell>
-                                            {post.published ? (
-                                                <Badge>Published</Badge>
-                                            ) : (
-                                                <Badge variant="secondary">
-                                                    Draft
-                                                </Badge>
-                                            )}
-                                        </TableCell>
-                                        <TableCell className="text-center text-muted-foreground">
-                                            <span className="inline-flex items-center gap-1 text-xs">
-                                                <Eye className="size-3.5" />
-                                                {post.views ?? 0}
-                                            </span>
-                                        </TableCell>
-                                        <TableCell className="text-center text-muted-foreground">
-                                            <span className="inline-flex items-center gap-1 text-xs">
-                                                <Heart className="size-3.5" />
-                                                {post.likes_count ?? 0}
-                                            </span>
-                                        </TableCell>
-                                        <TableCell className="text-center text-muted-foreground">
-                                            <span className="inline-flex items-center gap-1 text-xs">
-                                                <MessageCircle className="size-3.5" />
-                                                {post.comments_count ?? 0}
-                                            </span>
-                                        </TableCell>
-                                        <TableCell className="text-muted-foreground">
-                                            {post.created_at
-                                                ? new Date(
-                                                      post.created_at,
-                                                  ).toLocaleDateString()
-                                                : '—'}
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="size-8"
-                                                    >
-                                                        <MoreVertical className="size-4" />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem asChild>
-                                                        <Link
-                                                            href={PostController.edit(
-                                                                {
-                                                                    post: post.id,
-                                                                },
-                                                            ).url}
-                                                        >
-                                                            <Pencil className="size-4" />
-                                                            Edit
-                                                        </Link>
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem
-                                                        variant="destructive"
-                                                        onClick={() =>
-                                                            deletePost(post.id)
-                                                        }
-                                                    >
-                                                        <Trash2 className="size-4" />
-                                                        Delete
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                            </Table>
+                            <Table<Post>
+                                data={posts.data}
+                                columns={columns}
+                                getRowId={(post) => String(post.id)}
+                                selectable
+                                selectedRowIds={selectedIds}
+                                onSelectionChange={setSelectedIds}
+                                rowHeight={56}
+                                height={480}
+                            />
                         </>
                     )}
                 </div>
             </div>
+
+            <ConfirmDialog
+                open={deleteTarget !== null}
+                onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}
+                title="Delete post"
+                description="Are you sure you want to delete this post? This action cannot be undone."
+                confirmLabel="Delete"
+                destructive
+                onConfirm={() => {
+                    if (deleteTarget !== null) {
+                        router.delete(PostController.destroy({ post: deleteTarget }).url);
+                    }
+                }}
+            />
+
+            <ConfirmDialog
+                open={bulkDeleteOpen}
+                onOpenChange={setBulkDeleteOpen}
+                title={`Delete ${selectedIds.length} post${selectedIds.length > 1 ? 's' : ''}`}
+                description={`Are you sure you want to delete ${selectedIds.length} selected post${selectedIds.length > 1 ? 's' : ''}? This action cannot be undone.`}
+                confirmLabel="Delete"
+                destructive
+                onConfirm={() => {
+                    const ids = selectedIds.map(Number);
+                    router.post(PostController.bulkDestroy().url, { ids }, {
+                        onSuccess: () => setSelectedIds([]),
+                    });
+                }}
+            />
         </>
     );
 }

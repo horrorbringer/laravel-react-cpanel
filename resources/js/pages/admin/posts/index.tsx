@@ -1,20 +1,14 @@
-import { Head, Link, router } from '@inertiajs/react';
-import { StickyNoteIcon, Trash2 } from 'lucide-react';
+import { Head, router } from '@inertiajs/react';
+import { Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import PostController from '@/actions/App/Http/Controllers/Admin/PostController';
+import { ConfirmDialog } from '@/components/confirm-dialog';
 import Heading from '@/components/heading';
 import { SearchInput } from '@/components/search-input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
+import { Table } from '@/components/motion/table';
+import type { TableColumn } from '@/components/motion/table';
 import type { BreadcrumbItem } from '@/types';
 
 type Post = {
@@ -63,39 +57,101 @@ return;
         return () => clearTimeout(debounce.current);
     }, [search]);
 
-    const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
-    const allIds = posts.data.map((p) => p.id);
-    const allSelected = allIds.length > 0 && allIds.every((id) => selectedIds.has(id));
+    const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
+    const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
 
-    const toggleSelectAll = () => {
-        if (allSelected) {
-            setSelectedIds(new Set());
-        } else {
-            setSelectedIds(new Set(allIds));
-        }
-    };
-
-    const toggleSelect = (id: number) => {
-        const next = new Set(selectedIds);
-        next.has(id) ? next.delete(id) : next.add(id);
-        setSelectedIds(next);
-    };
+    const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
     const bulkDelete = () => {
-        const ids = Array.from(selectedIds);
-
-        if (ids.length === 0) {
+        if (selectedIds.length === 0) {
 return;
 }
-
-        if (!confirm(`Delete ${ids.length} post${ids.length > 1 ? 's' : ''}?`)) {
-return;
-}
-
-        router.post(PostController.bulkDestroy().url, { ids }, {
-            onSuccess: () => setSelectedIds(new Set()),
-        });
+        setBulkDeleteOpen(true);
     };
+
+    const columns: TableColumn<Post>[] = [
+        {
+            key: 'title',
+            header: 'Title',
+            cell: (post) => (
+                <div className="max-w-md">
+                    <div className="font-medium">{post.title}</div>
+                </div>
+            ),
+        },
+        {
+            key: 'author',
+            header: 'Author',
+            width: '160px',
+            cell: (post) => (
+                <span className="text-muted-foreground">
+                    {post.user?.name ?? 'Unknown'}
+                </span>
+            ),
+        },
+        {
+            key: 'status',
+            header: 'Status',
+            width: '100px',
+            cell: (post) =>
+                post.published ? (
+                    <Badge>Published</Badge>
+                ) : (
+                    <Badge variant="secondary">Draft</Badge>
+                ),
+        },
+        {
+            key: 'likes_count',
+            header: 'Likes',
+            align: 'center',
+            width: '80px',
+            cell: (post) => (
+                <span className="text-muted-foreground">
+                    {post.likes_count ?? 0}
+                </span>
+            ),
+        },
+        {
+            key: 'comments_count',
+            header: 'Comments',
+            align: 'center',
+            width: '100px',
+            cell: (post) => (
+                <span className="text-muted-foreground">
+                    {post.comments_count ?? 0}
+                </span>
+            ),
+        },
+        {
+            key: 'created_at',
+            header: 'Created',
+            width: '100px',
+            cell: (post) => (
+                <span className="text-muted-foreground">
+                    {post.created_at
+                        ? new Date(post.created_at).toLocaleDateString()
+                        : '—'}
+                </span>
+            ),
+        },
+        {
+            key: 'actions',
+            header: 'Actions',
+            align: 'right',
+            width: '80px',
+            cell: (post) => (
+                <div className="flex justify-end">
+                    <Button
+                        variant="destructive"
+                        size="sm"
+                                                onClick={() => setDeleteTarget(post.id)}
+                    >
+                        <Trash2 className="size-4" />
+                    </Button>
+                </div>
+            ),
+        },
+    ];
 
     return (
         <>
@@ -119,10 +175,10 @@ return;
                         </p>
                     ) : (
                         <>
-                            {selectedIds.size > 0 && (
+                            {selectedIds.length > 0 && (
                                 <div className="mb-4 flex items-center gap-3 rounded-lg border bg-muted/50 px-4 py-2.5">
                                     <span className="text-sm text-muted-foreground">
-                                        {selectedIds.size} selected
+                                        {selectedIds.length} selected
                                     </span>
                                     <Button
                                         variant="destructive"
@@ -134,82 +190,49 @@ return;
                                     </Button>
                                 </div>
                             )}
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead className="w-10">
-                                            <Checkbox
-                                                checked={allSelected}
-                                                onCheckedChange={toggleSelectAll}
-                                                aria-label="Select all"
-                                            />
-                                        </TableHead>
-                                        <TableHead>Title</TableHead>
-                                        <TableHead>Author</TableHead>
-                                        <TableHead>Status</TableHead>
-                                        <TableHead className="text-center">Likes</TableHead>
-                                        <TableHead className="text-center">Comments</TableHead>
-                                        <TableHead>Created</TableHead>
-                                        <TableHead className="text-right">Actions</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {posts.data.map((post) => (
-                                        <TableRow key={post.id}>
-                                            <TableCell>
-                                                <Checkbox
-                                                    checked={selectedIds.has(post.id)}
-                                                    onCheckedChange={() => toggleSelect(post.id)}
-                                                    aria-label={`Select ${post.title}`}
-                                                />
-                                            </TableCell>
-                                            <TableCell className="max-w-md">
-                                                <div className="font-medium">{post.title}</div>
-                                            </TableCell>
-                                            <TableCell className="text-muted-foreground">
-                                                {post.user?.name ?? 'Unknown'}
-                                            </TableCell>
-                                            <TableCell>
-                                                {post.published ? (
-                                                    <Badge>Published</Badge>
-                                                ) : (
-                                                    <Badge variant="secondary">Draft</Badge>
-                                                )}
-                                            </TableCell>
-                                            <TableCell className="text-center text-muted-foreground">
-                                                {post.likes_count ?? 0}
-                                            </TableCell>
-                                            <TableCell className="text-center text-muted-foreground">
-                                                {post.comments_count ?? 0}
-                                            </TableCell>
-                                            <TableCell className="text-muted-foreground">
-                                                {post.created_at
-                                                    ? new Date(post.created_at).toLocaleDateString()
-                                                    : '—'}
-                                            </TableCell>
-                                            <TableCell className="text-right">
-                                                <Button
-                                                    variant="destructive"
-                                                    size="sm"
-                                                    onClick={() => {
-                                                        if (confirm('Delete this post?')) {
-                                                            router.delete(
-                                                                PostController.destroy({ post: post.id }).url,
-                                                            );
-                                                        }
-                                                    }}
-                                                >
-                                                    <Trash2 className="size-4" />
-                                                </Button>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
+                            <Table<Post>
+                                data={posts.data}
+                                columns={columns}
+                                getRowId={(post) => String(post.id)}
+                                selectable
+                                selectedRowIds={selectedIds}
+                                onSelectionChange={setSelectedIds}
+                                rowHeight={56}
+                                height={480}
+                            />
                         </>
                     )}
                 </div>
             </div>
+
+            <ConfirmDialog
+                open={deleteTarget !== null}
+                onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}
+                title="Delete post"
+                description="Are you sure you want to delete this post? This action cannot be undone."
+                confirmLabel="Delete"
+                destructive
+                onConfirm={() => {
+                    if (deleteTarget !== null) {
+                        router.delete(PostController.destroy({ post: deleteTarget }).url);
+                    }
+                }}
+            />
+
+            <ConfirmDialog
+                open={bulkDeleteOpen}
+                onOpenChange={setBulkDeleteOpen}
+                title={`Delete ${selectedIds.length} post${selectedIds.length > 1 ? 's' : ''}`}
+                description={`Are you sure you want to delete ${selectedIds.length} selected post${selectedIds.length > 1 ? 's' : ''}? This action cannot be undone.`}
+                confirmLabel="Delete"
+                destructive
+                onConfirm={() => {
+                    const ids = selectedIds.map(Number);
+                    router.post(PostController.bulkDestroy().url, { ids }, {
+                        onSuccess: () => setSelectedIds([]),
+                    });
+                }}
+            />
         </>
     );
 }

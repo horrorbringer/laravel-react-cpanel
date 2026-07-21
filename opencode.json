@@ -9,6 +9,11 @@
                 "artisan",
                 "boost:mcp"
             ]
+        },
+        "beui": {
+            "type": "remote",
+            "url": "https://mcp.beui.dev/mcp",
+            "enabled": true
         }
     }
 }
