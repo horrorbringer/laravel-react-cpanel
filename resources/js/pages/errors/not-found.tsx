@@ -1,7 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
+import { Button } from '@/components/ui/button';
 import { home } from '@/routes';
 import { index as postsIndex } from '@/routes/posts';
-import { Button } from '@/components/ui/button';
 
 type Props = {
     status?: number;

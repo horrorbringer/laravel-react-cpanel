@@ -1,5 +1,6 @@
 import { Form, router } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
+import PostController from '@/actions/App/Http/Controllers/PostController';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
 import PostEditor from '@/components/post-editor';
@@ -7,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import PostController from '@/actions/App/Http/Controllers/PostController';
 import type { RouteDefinition } from '@/wayfinder';
 
 type Post = {
@@ -41,6 +41,7 @@ export default function PostForm({
     useEffect(() => {
         if (firstRun.current) {
             firstRun.current = false;
+
             return;
         }
 
@@ -86,9 +87,11 @@ export default function PostForm({
                     onSuccess: (response: unknown) => {
                         const data = (response as { data?: { id?: number }; id?: number });
                         const id = data.data?.id ?? data.id;
+
                         if (typeof id === 'number') {
                             setDraftId(id);
                         }
+
                         setStatus('saved');
                     },
                     onError: () => setStatus('error'),

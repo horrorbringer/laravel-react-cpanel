@@ -1,5 +1,6 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Moon, PenLine, Sun } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import {
     create as createPost,
     index as postsIndex,
@@ -12,7 +13,6 @@ import { Separator } from '@/components/ui/separator';
 import { useAppearance } from '@/hooks/use-appearance';
 import { home } from '@/routes';
 import { login, register } from '@/routes';
-import { useEffect, useRef, useState } from 'react';
 import type { Auth } from '@/types';
 
 type Article = {
