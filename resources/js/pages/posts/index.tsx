@@ -35,8 +35,8 @@ type Filters = {
     search?: string;
 };
 
-function stripHtml(html: string): string {
-    return html.replace(/<[^>]*>/g, '');
+function stripHtml(html: string | null | undefined): string {
+    return (html ?? '').replace(/<[^>]*>/g, '');
 }
 
 export default function PostsIndex({
