@@ -1,5 +1,7 @@
-import { Link, usePage } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import { BookOpen, Folder, Menu, Search } from 'lucide-react';
+import { useState } from 'react';
+import type { FormEvent } from 'react';
 import AppLogo from '@/components/app-logo';
 import AppLogoIcon from '@/components/app-logo-icon';
 import { Breadcrumbs } from '@/components/breadcrumbs';
@@ -10,6 +12,7 @@ import {
     DropdownMenuContent,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
 import {
     NavigationMenu,
     NavigationMenuItem,
@@ -32,7 +35,7 @@ import { UserMenuContent } from '@/components/user-menu-content';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { useInitials } from '@/hooks/use-initials';
 import { cn, toUrl } from '@/lib/utils';
-import { home } from '@/routes';
+import { home, search as searchRoute } from '@/routes';
 import type { BreadcrumbItem, NavItem } from '@/types';
 
 type Props = {
@@ -62,6 +65,15 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
     const { auth } = page.props;
     const getInitials = useInitials();
     const { isCurrentUrl, whenCurrentUrl } = useCurrentUrl();
+    const [searchQuery, setSearchQuery] = useState('');
+
+    const submitSearch = (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+
+        router.get(searchRoute().url, {
+            q: searchQuery.trim() || undefined,
+        });
+    };
 
     return (
         <>
@@ -170,14 +182,37 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                         </NavigationMenu>
                     </div>
 
+                    <form
+                        className="ml-6 hidden w-full max-w-sm lg:block xl:max-w-md"
+                        onSubmit={submitSearch}
+                    >
+                        <div className="relative">
+                            <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+                            <Input
+                                type="search"
+                                value={searchQuery}
+                                onChange={(event) =>
+                                    setSearchQuery(event.target.value)
+                                }
+                                placeholder="Search published articles..."
+                                aria-label="Search published articles"
+                                className="h-9 rounded-full border-transparent bg-muted/60 pl-9 text-sm shadow-none transition-colors hover:bg-muted focus-visible:border-input focus-visible:bg-background"
+                            />
+                        </div>
+                    </form>
+
                     <div className="ml-auto flex items-center space-x-2">
                         <div className="relative flex items-center space-x-1">
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className="group h-9 w-9 cursor-pointer"
+                                className="group h-9 w-9 cursor-pointer lg:hidden"
+                                asChild
                             >
-                                <Search className="!size-5 opacity-80 group-hover:opacity-100" />
+                                <Link href={searchRoute()}>
+                                    <span className="sr-only">Search</span>
+                                    <Search className="!size-5 opacity-80 group-hover:opacity-100" />
+                                </Link>
                             </Button>
                             <div className="ml-1 hidden gap-1 lg:flex">
                                 {rightNavItems.map((item) => (
