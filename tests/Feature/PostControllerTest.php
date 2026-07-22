@@ -113,9 +113,9 @@ test('users cannot delete posts they do not own', function () {
         ->assertForbidden();
 });
 
-test('autosave creates a draft and returns its id', function () {
+test('autosave accepts a standalone JSON request and returns the draft id', function () {
     $this->actingAs($this->user)
-        ->post(route('posts.autosave'), [
+        ->postJson(route('posts.autosave'), [
             'title' => 'Half written',
             'content' => '<p>Draft…</p>',
         ])

@@ -1,4 +1,4 @@
-import { Form, router } from '@inertiajs/react';
+import { Form, useHttp } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import PostController from '@/actions/App/Http/Controllers/PostController';
 import Heading from '@/components/heading';
@@ -19,6 +19,15 @@ type Post = {
 
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 
+type AutosavePayload = {
+    title: string | null;
+    content: string | null;
+};
+
+type AutosaveResponse = {
+    id: number;
+};
+
 export default function PostForm({
     action,
     post,
@@ -34,11 +43,22 @@ export default function PostForm({
     );
     const [status, setStatus] = useState<SaveStatus>('idle');
     const [draftId, setDraftId] = useState<number | undefined>(post?.id);
+    const [autosaveVersion, setAutosaveVersion] = useState(0);
+    const autosave = useHttp<AutosavePayload, AutosaveResponse>({
+        title: null,
+        content: null,
+    });
 
     const debounce = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
     const firstRun = useRef(true);
     const draftIdRef = useRef(draftId);
     const lastSaved = useRef({ title: '', content: '' });
+    const autosaveInFlight = useRef(false);
+    const autosaveRef = useRef(autosave);
+
+    useEffect(() => {
+        autosaveRef.current = autosave;
+    }, [autosave]);
 
     useEffect(() => {
         draftIdRef.current = draftId;
@@ -66,54 +86,67 @@ export default function PostForm({
         setStatus('saving');
 
         debounce.current = setTimeout(() => {
+            if (autosaveInFlight.current) {
+                return;
+            }
+
+            autosaveInFlight.current = true;
+
             const payload = {
                 title: title.trim() === '' ? null : title,
                 content: content.trim() === '' ? null : content,
             };
+
+            autosaveRef.current.setData(payload);
 
             const onSaved = (id?: number) => {
                 if (typeof id === 'number') {
                     setDraftId(id);
                     draftIdRef.current = id;
                 }
+
                 lastSaved.current = { title, content };
                 setStatus('saved');
+                setAutosaveVersion((version) => version + 1);
+            };
+
+            const onFailed = () => {
+                setStatus('error');
+            };
+
+            const onFinish = () => {
+                autosaveInFlight.current = false;
             };
 
             if (draftIdRef.current) {
-                router.put(
+                autosaveRef.current.put(
                     PostController.autosaveUpdate({ post: draftIdRef.current }).url,
-                    payload,
                     {
-                        preserveScroll: true,
-                        preserveState: true,
-                        errorBag: 'autosave',
-                        onSuccess: () => onSaved(),
-                        onError: () => setStatus('error'),
+                        onSuccess: (response) => onSaved(response.id),
+                        onError: onFailed,
+                        onHttpException: onFailed,
+                        onNetworkError: onFailed,
+                        onFinish,
                     },
-                );
+                ).catch(onFailed);
 
                 return;
             }
 
-            router.post(
+            autosaveRef.current.post(
                 PostController.autosaveStore().url,
-                payload,
                 {
-                    preserveScroll: true,
-                    preserveState: true,
-                    errorBag: 'autosave',
-                    onSuccess: (response: unknown) => {
-                        const data = (response as { data?: { id?: number }; id?: number });
-                        onSaved(data.data?.id ?? data.id);
-                    },
-                    onError: () => setStatus('error'),
+                    onSuccess: (response) => onSaved(response.id),
+                    onError: onFailed,
+                    onHttpException: onFailed,
+                    onNetworkError: onFailed,
+                    onFinish,
                 },
-            );
+            ).catch(onFailed);
         }, 1000);
 
         return () => clearTimeout(debounce.current);
-    }, [title, content]);
+    }, [title, content, autosaveVersion]);
 
     const statusLabel: Record<SaveStatus, string> = {
         idle: '',
